@@ -7,7 +7,6 @@ using BepInEx.Logging;
 using UnityEngine;
 using Photon.Pun;
 using VoiceCurse.Core;
-using VoiceCurse.Audio;
 using VoiceCurse.Networking;
 
 namespace VoiceCurse;
@@ -22,9 +21,12 @@ public partial class Plugin : BaseUnityPlugin {
     private VoiceCurseConfig? _config;
     private IVoiceRecognizer? _recognizer;
     private VoiceEventHandler? _eventHandler;
-    private AudioStreamTapper? _tapper;
-    private AudioSource? _micSource;
     private VoiceCurseNetworker? _networker;
+    
+    private AudioClip? _micClip;
+    private string? _deviceName;
+    private int _lastSamplePos;
+    private bool _isMicInitialized;
         
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private volatile string _lastPartialText = "";
@@ -46,7 +48,7 @@ public partial class Plugin : BaseUnityPlugin {
         if (_config != null) {
             _eventHandler = new VoiceEventHandler(_config);
         }
-        
+
         _networker = new VoiceCurseNetworker();
         PhotonNetwork.AddCallbackTarget(_networker);
 
@@ -69,7 +71,6 @@ public partial class Plugin : BaseUnityPlugin {
             
             _recognizer.OnPhraseRecognized += (text) => {
                 _lastPartialText = "";
-
                 _mainThreadActions.Enqueue(() => {
                     Log.LogInfo($"[Recognized]: {text}");
                     _eventHandler?.HandleSpeech(text, true);
@@ -99,39 +100,70 @@ public partial class Plugin : BaseUnityPlugin {
             action.Invoke();
         }
 
-        if (_micSource is null && _recognizer != null) {
+        if (!_isMicInitialized && _recognizer != null) {
             SetupMicrophone();
         }
+
+        ProcessMicrophoneData();
     }
 
     private void SetupMicrophone() {
-        GameObject micObj = new("VoiceCurse_Mic");
-        DontDestroyOnLoad(micObj);
+        _deviceName = null;
+        Microphone.GetDeviceCaps(_deviceName, out int minFreq, out int maxFreq);
+
+        int systemRate = AudioSettings.outputSampleRate;
+        int targetFreq = systemRate;
+
+        if (maxFreq > 0) {
+            targetFreq = Mathf.Clamp(systemRate, minFreq, maxFreq);
+        }
+
+        Log.LogInfo($"Starting Direct Microphone Capture. Target Rate: {targetFreq} Hz");
+        
+        _micClip = Microphone.Start(_deviceName, true, 10, targetFreq);
+        _isMicInitialized = true;
+        _lastSamplePos = 0;
+    }
+
+    private void ProcessMicrophoneData() {
+        if (!_isMicInitialized || _micClip is null || _recognizer == null) return;
+
+        int currentPos = Microphone.GetPosition(_deviceName);
+        
+        if (currentPos == _lastSamplePos) return;
+        
+        int samplesToRead;
+        if (currentPos > _lastSamplePos) {
+            samplesToRead = currentPos - _lastSamplePos;
+        } else {
+            samplesToRead = (_micClip.samples - _lastSamplePos) + currentPos;
+        }
+
+        if (samplesToRead <= 0) return;
+        
+        float[] samples = new float[samplesToRead];
+        
+        if (currentPos > _lastSamplePos) {
+            _micClip.GetData(samples, _lastSamplePos);
+        } else {
+            float[] endPart = new float[_micClip.samples - _lastSamplePos];
+            _micClip.GetData(endPart, _lastSamplePos);
             
-        _micSource = micObj.AddComponent<AudioSource>();
-        _tapper = micObj.AddComponent<AudioStreamTapper>();
+            float[] startPart = new float[currentPos];
+            _micClip.GetData(startPart, 0);
             
-        if (_recognizer != null) {
-            _tapper.Initialize(_recognizer, muteOutput: true);
+            Array.Copy(endPart, 0, samples, 0, endPart.Length);
+            Array.Copy(startPart, 0, samples, endPart.Length, startPart.Length);
         }
         
-        string? deviceName = null;
-
-        Microphone.GetDeviceCaps(deviceName, out int minFreq, out int maxFreq);
-
-        int targetFreq = 48000;
-        if (maxFreq > 0) {
-            targetFreq = Mathf.Clamp(48000, minFreq, maxFreq);
+        short[] pcmBuffer = new short[samples.Length];
+        for (int i = 0; i < samples.Length; i++) {
+            pcmBuffer[i] = (short)(Mathf.Clamp(samples[i], -1f, 1f) * 32767);
         }
-
-        Log.LogInfo($"Starting Microphone Capture on: System Default. Requested Rate: {targetFreq} Hz");
-            
-        _micSource.clip = Microphone.Start(deviceName, true, 10, targetFreq);
-        _micSource.loop = true;
-            
-        while (!(Microphone.GetPosition(deviceName) > 0)) { }
-            
-        _micSource.Play();
+        
+        _recognizer.FeedAudio(pcmBuffer, pcmBuffer.Length);
+        
+        _lastSamplePos = currentPos;
     }
 
     private void OnDestroy() {
