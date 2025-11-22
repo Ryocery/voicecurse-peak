@@ -16,7 +16,7 @@ public class DeathEvent(VoiceCurseConfig config) : IVoiceEvent {
         if (localChar is null || localChar.data.dead) return false;
 
         if (config.EnableDebugLogs.Value) {
-            Debug.Log($"[VoiceCurse] Instant Death triggered by phrase: '{fullSentence}'");
+            Debug.Log($"[VoiceCurse] Death triggered by phrase: '{fullSentence}'");
         }
             
         localChar.photonView.RPC("RPCA_Die", RpcTarget.All, localChar.Center);

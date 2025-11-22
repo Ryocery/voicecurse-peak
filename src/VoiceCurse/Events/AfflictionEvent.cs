@@ -23,7 +23,7 @@ public class AfflictionEvent(VoiceCurseConfig config) : IVoiceEvent {
         if (!_keywords.TryGetValue(spokenWord, out CharacterAfflictions.STATUSTYPE statusType)) {
             return false;
         }
-            
+        
         Character localChar = Character.localCharacter;
         if (localChar?.refs?.afflictions is null) return false;
         if (localChar.data.dead || localChar.data.fullyPassedOut) return false;
