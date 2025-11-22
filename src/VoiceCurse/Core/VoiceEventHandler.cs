@@ -9,6 +9,7 @@ public class VoiceEventHandler(VoiceCurseConfig config) {
         new AfflictionEvent(config),
         new SleepEvent(config),
         new ExplodeEvent(config),
+        new LaunchEvent(config),
     ];
         
     private readonly Dictionary<string, int> _previousWordCounts = new();
