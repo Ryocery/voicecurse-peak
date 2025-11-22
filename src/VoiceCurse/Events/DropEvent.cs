@@ -1,31 +1,23 @@
 using System.Collections.Generic;
-using System.Linq;
 using Photon.Pun;
 using UnityEngine;
 using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
-public class DropEvent(VoiceCurseConfig config) : IVoiceEvent {
+public class DropEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = [
-        "drop", "dropping", "dropped", "oops", "whoops", 
-        "butterfingers", "fumble", "fumbled", "slip", "slipped", 
-        "slipping", "release", "discard", "off"
+        "drop", "oops", "whoops", "butterfingers", "fumble", "slip", 
+        "release", "discard", "yeet", "off"
     ];
 
-    public bool TryExecute(string spokenWord, string fullSentence) {
-        string? matchedKeyword = _keywords.FirstOrDefault(spokenWord.Contains);
-        if (matchedKeyword == null) return false;
+    protected override IEnumerable<string> GetKeywords() => _keywords;
 
-        Character localChar = Character.localCharacter;
-        if (localChar is null || localChar.data.dead) return false;
+    protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
+        if (player.data.dead) return false;
 
-        if (config.EnableDebugLogs.Value) {
-            Debug.Log($"[VoiceCurse] Drop Items triggered by '{spokenWord}'");
-        }
-        
-        ScatterBackpackContents(localChar);
-        localChar.refs.items.DropAllItems(includeBackpack: true);
+        ScatterBackpackContents(player);
+        player.refs.items.DropAllItems(includeBackpack: true);
         
         return true;
     }

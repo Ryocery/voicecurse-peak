@@ -5,7 +5,7 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
-public class AfflictionEvent(VoiceCurseConfig config) : IVoiceEvent {
+public class AfflictionEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
     private static readonly Dictionary<CharacterAfflictions.STATUSTYPE, string[]> WordGroups = new() {
         { CharacterAfflictions.STATUSTYPE.Injury, ["damage", "hurt", "injury", "injured", "pain"] },
         { CharacterAfflictions.STATUSTYPE.Hunger, ["hunger", "hungry", "starving", "starve", "food"] },
@@ -14,28 +14,28 @@ public class AfflictionEvent(VoiceCurseConfig config) : IVoiceEvent {
         { CharacterAfflictions.STATUSTYPE.Poison, ["poison", "sick", "vomit", "toxic"] },
         { CharacterAfflictions.STATUSTYPE.Spores, ["spores", "spore", "zombie", "fungus", "mushroom"] },
     };
-        
-    private readonly Dictionary<string, CharacterAfflictions.STATUSTYPE> _keywords = 
-        WordGroups.SelectMany(g => g.Value.Select(w => (Word: w, Type: g.Key))).ToDictionary(x => x.Word, x => x.Type); 
-    // Thank you, LINQ, very cool.
+    
+    private readonly Dictionary<string, CharacterAfflictions.STATUSTYPE> _wordToType = 
+        WordGroups.SelectMany(g => g.Value.Select(w => (Word: w, Type: g.Key)))
+                  .ToDictionary(x => x.Word, x => x.Type); 
 
-    public bool TryExecute(string spokenWord, string fullSentence) {
-        KeyValuePair<string, CharacterAfflictions.STATUSTYPE> matchedKeyword = _keywords.FirstOrDefault(kvp => spokenWord.Contains(kvp.Key));
-        if (matchedKeyword.Key == null) return false;
-        
-        CharacterAfflictions.STATUSTYPE statusType = matchedKeyword.Value;
-        
-        Character localChar = Character.localCharacter;
-        if (localChar?.refs?.afflictions is null) return false;
-        if (localChar.data.dead || localChar.data.fullyPassedOut) return false;
-            
-        float amount = Random.Range(config.MinAfflictionPercent.Value, config.MaxAfflictionPercent.Value);
+    protected override IEnumerable<string> GetKeywords() => _wordToType.Keys;
 
-        if (config.EnableDebugLogs.Value) {
-            Debug.Log($"[VoiceCurse] Affliction: {statusType} ({amount:P0}) triggered by '{spokenWord}'");
+    protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
+        if (player.refs?.afflictions is null) return false;
+        if (player.data.dead || player.data.fullyPassedOut) return false;
+
+        if (!_wordToType.TryGetValue(matchedKeyword, out CharacterAfflictions.STATUSTYPE statusType)) {
+            return false;
         }
-            
-        localChar.refs.afflictions.AddStatus(statusType, amount);
+
+        float amount = Random.Range(Config.MinAfflictionPercent.Value, Config.MaxAfflictionPercent.Value);
+        
+        if (Config.EnableDebugLogs.Value) {
+            Debug.Log($"[VoiceCurse] Affliction Specifics: {statusType} ({amount:P0})");
+        }
+
+        player.refs.afflictions.AddStatus(statusType, amount);
         return true;
     }
 }

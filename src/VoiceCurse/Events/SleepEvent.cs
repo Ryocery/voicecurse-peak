@@ -1,25 +1,17 @@
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
-public class SleepEvent(VoiceCurseConfig config) : IVoiceEvent {
+public class SleepEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = ["faint", "sleep", "exhausted", "sleepy", "tired", "bed"];
     
-    public bool TryExecute(string spokenWord, string fullSentence) {
-        string? matchedKeyword = _keywords.FirstOrDefault(spokenWord.Contains);
-        if (matchedKeyword == null) return false;
-        
-        Character localChar = Character.localCharacter;
-        if (localChar is null || localChar.data.passedOut || localChar.data.dead) return false;
+    protected override IEnumerable<string> GetKeywords() => _keywords;
 
-        if (config.EnableDebugLogs.Value) {
-            Debug.Log($"[VoiceCurse] Fainting triggered by phrase: '{fullSentence}'");
-        }
-        
-        localChar.PassOutInstantly();
+    protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
+        if (player.data.passedOut || player.data.dead) return false;
+
+        player.PassOutInstantly();
         return true;
     }
 }

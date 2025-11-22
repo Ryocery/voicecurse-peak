@@ -6,30 +6,25 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
-public class DeathEvent(VoiceCurseConfig config) : IVoiceEvent {
+public class DeathEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = [
         "die", "death", "dead", "suicide", "kill", "deceased", "skeleton", 
         "skull", "calcium", "bones", "bone", "perish", "demise", "expire", 
-        "expired", "fatal", "mortality", "mortal", "milk"];
+        "expired", "fatal", "mortality", "mortal", "milk"
+    ];
 
     private static Item? _cachedMilkItem;
 
-    public bool TryExecute(string spokenWord, string fullSentence) {
-        string? matchedKeyword = _keywords.FirstOrDefault(spokenWord.Contains);
-        if (matchedKeyword == null) return false;
-        
-        Character localChar = Character.localCharacter;
-        if (localChar is null || localChar.data.dead) return false;
+    protected override IEnumerable<string> GetKeywords() => _keywords;
 
-        if (config.EnableDebugLogs.Value) {
-            Debug.Log($"[VoiceCurse] Death triggered by phrase: '{fullSentence}'");
-        }
-        
+    protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
+        if (player.data.dead) return false;
+
         if (fullSentence.Contains("milk")) {
-            SpawnMilk(localChar);
+            SpawnMilk(player);
         }
             
-        localChar.photonView.RPC("RPCA_Die", RpcTarget.All, localChar.Center);
+        player.photonView.RPC("RPCA_Die", RpcTarget.All, player.Center);
         return true;
     }
 
