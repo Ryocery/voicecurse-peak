@@ -38,7 +38,7 @@ public abstract class VoiceEventBase(VoiceCurseConfig config) : IVoiceEvent {
         return OnExecute(localChar, spokenWord, fullSentence, matchedKeyword);
     }
 
-    private void NotifyPlayer(Character player, string fullWord, string keyword) {
+private void NotifyPlayer(Character player, string fullWord, string keyword) {
         _connectionLog ??=
             Object.FindFirstObjectByType(System.Type.GetType("PlayerConnectionLog, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")) as MonoBehaviour ??
             Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).FirstOrDefault(m => m.GetType().Name == "PlayerConnectionLog");
@@ -52,10 +52,13 @@ public abstract class VoiceEventBase(VoiceCurseConfig config) : IVoiceEvent {
             _addMessageMethod = _connectionLog.GetType().GetMethod("AddMessage", BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
-        if (_addMessageMethod == null) {
-            if (Config.EnableDebugLogs.Value) Debug.LogError("[VoiceCurse] Found PlayerConnectionLog but could not find 'AddMessage' method!");
-            return;
+        if (_addMessageMethod == null) return;
+        
+        Color playerColor = Color.white;
+        if (player.refs?.customization is not null) {
+            playerColor = player.refs.customization.PlayerColor;
         }
+        string playerHex = "#" + ColorUtility.ToHtmlStringRGB(playerColor);
         
         string displayString = fullWord;
         int index = fullWord.IndexOf(keyword, System.StringComparison.OrdinalIgnoreCase);
@@ -65,11 +68,12 @@ public abstract class VoiceEventBase(VoiceCurseConfig config) : IVoiceEvent {
             string match = fullWord.Substring(index, keyword.Length);
             string suffix = fullWord[(index + keyword.Length)..];
             
-            displayString = $"{prefix}<color=#FF0000><b>{match}</b></color>{suffix}";
+            displayString = $"{prefix}<color=#8B0000>{match}</color>{suffix}";
         }
         
         string eventName = GetType().Name.Replace("Event", "");
-        string finalMessage = $"{player.characterName} said \"{displayString}\" which triggered <color=#FFA500>{eventName}</color>";
+    
+        string finalMessage = $"<color={playerHex}>{player.characterName} said \"{displayString}\" which triggered </color><color=#FFA500>{eventName}</color>";
         
         try {
             _addMessageMethod.Invoke(_connectionLog, [finalMessage]);
