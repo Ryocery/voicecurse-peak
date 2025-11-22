@@ -1,8 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Photon.Pun;
 using VoiceCurse.Core;
 
 namespace VoiceCurse.Events {
@@ -35,9 +33,6 @@ namespace VoiceCurse.Events {
             Dynamite? dynamiteRef = Resources.FindObjectsOfTypeAll<Dynamite>().FirstOrDefault();
             if (dynamiteRef is null) return;
             _cachedExplosionPrefab = dynamiteRef.explosionPrefab;
-            if (_cachedExplosionPrefab is not null) {
-                Debug.Log("[VoiceCurse] Found Dynamite Explosion Prefab successfully.");
-            }
         }
     }
 }
