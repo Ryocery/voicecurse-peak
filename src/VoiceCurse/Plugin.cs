@@ -56,6 +56,8 @@ namespace VoiceCurse {
             while (_mainThreadActions.TryDequeue(out Action action)) {
                 action.Invoke();
             }
+            
+            _recognizer?.Update();
 
             if (_micSource is null && _recognizer != null) {
                 SetupMicrophone();

@@ -8,5 +8,6 @@ namespace VoiceCurse.Core {
         void FeedAudio(short[] pcmData, int length);
         void Start();
         void Stop();
+        void Update();
     }
 }

@@ -10,6 +10,8 @@ namespace VoiceCurse.Core {
         private readonly Model _model;
         private readonly VoskRecognizer _recognizer;
         private readonly ConcurrentQueue<short[]> _audioQueue = new();
+        private readonly ConcurrentQueue<(string text, bool isPartial)> _resultQueue = new();
+        
         private Thread? _workerThread;
         private volatile bool _isRunning;
 
@@ -21,8 +23,6 @@ namespace VoiceCurse.Core {
                 throw new DirectoryNotFoundException("Vosk model not found at: " + modelPath);
             }
 
-            Vosk.Vosk.SetLogLevel(-1);
-
             try {
                 _model = new Model(modelPath);
                 _recognizer = new VoskRecognizer(_model, 48000.0f);
@@ -33,12 +33,19 @@ namespace VoiceCurse.Core {
                 throw;
             }
         }
+        
+        public void Update() {
+            while (_resultQueue.TryDequeue(out (string text, bool isPartial) result)) {
+                if (result.isPartial) {
+                    OnPartialResult?.Invoke(result.text);
+                } else {
+                    OnPhraseRecognized?.Invoke(result.text);
+                }
+            }
+        }
 
         public void Start() {
-            if (_isRunning) {
-                return;
-            }
-
+            if (_isRunning) return;
             _isRunning = true;
             _workerThread = new Thread(ProcessAudioLoop);
             _workerThread.IsBackground = true;
@@ -64,38 +71,42 @@ namespace VoiceCurse.Core {
                 if (_audioQueue.TryDequeue(out short[] data)) {
                     if (_recognizer.AcceptWaveform(data, data.Length)) {
                         string jsonResult = _recognizer.Result();
-                        ExtractAndFire(jsonResult, isPartial: false);
+                        ExtractAndQueue(jsonResult, isPartial: false);
                     } else {
                         string partialJson = _recognizer.PartialResult();
-                        ExtractAndFire(partialJson, isPartial: true);
+                        ExtractAndQueue(partialJson, isPartial: true);
                     }
                 } else {
                     Thread.Sleep(10);
                 }
             }
         }
-
-        private void ExtractAndFire(string json, bool isPartial) {
-            if (string.IsNullOrEmpty(json)) {
-                return;
-            }
+        
+        private void ExtractAndQueue(string json, bool isPartial) {
+            if (string.IsNullOrEmpty(json)) return;
             
             string key = isPartial ? "\"partial\"" : "\"text\"";
-
-            int textIndex = json.IndexOf(key + " :", StringComparison.Ordinal);
-            if (textIndex != -1) {
-                int start = json.IndexOf("\"", textIndex + key.Length + 2, StringComparison.Ordinal) + 1;
-                int end = json.LastIndexOf("\"", StringComparison.Ordinal);
-
-                if (end > start) {
-                    string text = json.Substring(start, end - start);
-                    if (!string.IsNullOrWhiteSpace(text)) {
-                        if (isPartial) {
-                            OnPartialResult?.Invoke(text);
-                        } else {
-                            OnPhraseRecognized?.Invoke(text);
-                        }
-                    }
+            
+            int keyIndex = json.IndexOf(key, StringComparison.Ordinal);
+            if (keyIndex == -1) return;
+            
+            int startQuote = json.IndexOf("\"", keyIndex + key.Length, StringComparison.Ordinal);
+            while (startQuote != -1 && (json[startQuote-1] == '\\' || json[startQuote+1] == ':')) {
+                 startQuote = json.IndexOf("\"", startQuote + 1, StringComparison.Ordinal);
+            }
+            
+            int colonIndex = json.IndexOf(':', keyIndex);
+            if (colonIndex == -1) return;
+            
+            int start = json.IndexOf('"', colonIndex) + 1;
+            if (start == 0) return;
+            
+            int end = json.IndexOf('"', start);
+            
+            if (end > start) {
+                string text = json.Substring(start, end - start);
+                if (!string.IsNullOrWhiteSpace(text)) {
+                    _resultQueue.Enqueue((text, isPartial));
                 }
             }
         }
