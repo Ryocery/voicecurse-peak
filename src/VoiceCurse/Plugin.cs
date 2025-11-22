@@ -2,11 +2,17 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
 using UnityEngine;
 using Photon.Pun;
+using Photon.Voice;
+using Photon.Voice.PUN; 
+using Photon.Voice.Unity;
+using Vosk;
 using VoiceCurse.Core;
+using VoiceCurse.Audio;
 using VoiceCurse.Networking;
 
 namespace VoiceCurse;
@@ -23,10 +29,10 @@ public partial class Plugin : BaseUnityPlugin {
     private VoiceEventHandler? _eventHandler;
     private VoiceCurseNetworker? _networker;
     
-    private AudioClip? _micClip;
-    private string? _deviceName;
-    private int _lastSamplePos;
-    private bool _isMicInitialized;
+    private Model? _voskModel;
+    
+    private int _currentSampleRate;
+    private bool _isHooked;
         
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private volatile string _lastPartialText = "";
@@ -34,40 +40,91 @@ public partial class Plugin : BaseUnityPlugin {
     private void Awake() {
         Log = Logger;
         Log.LogInfo($"Plugin {Name} is loading...");
-        string? pluginDir = Path.GetDirectoryName(Info.Location);
         
+        string? pluginDir = Path.GetDirectoryName(Info.Location);
         if (Directory.Exists(pluginDir)) {
             SetDllDirectory(pluginDir);
-            Log.LogInfo($"Added DLL search directory: {pluginDir}");
-        } else {
-            Log.LogError($"Could not find plugin directory: {pluginDir}");
         }
 
         _config = new VoiceCurseConfig(Config);
-        
         if (_config != null) {
             _eventHandler = new VoiceEventHandler(_config);
         }
 
         _networker = new VoiceCurseNetworker();
         PhotonNetwork.AddCallbackTarget(_networker);
-
-        SetupVoiceRecognition();
+        
+        string modelPath = Path.Combine(Paths.PluginPath, "VoiceCurse", "model-en-us");
+        if (Directory.Exists(modelPath)) {
+            try {
+                _voskModel = new Model(modelPath);
+                Log.LogInfo("Vosk Model loaded successfully.");
+            } catch (Exception e) {
+                Log.LogError($"Failed to load Vosk Model: {e.Message}");
+            }
+        } else {
+            Log.LogError($"Vosk model not found at: {modelPath}");
+        }
+        
+        if (_voskModel != null) {
+            SetupVoiceRecognition(AudioSettings.outputSampleRate);
+        }
     }
 
-    private void SetupVoiceRecognition() {
-        string modelPath = Path.Combine(Paths.PluginPath, "VoiceCurse", "model-en-us");
-
-        if (!Directory.Exists(modelPath)) {
-            Log.LogError($"Vosk model not found! Please create folder: {modelPath}");
-            return;
+    private void Update() {
+        while (_mainThreadActions.TryDequeue(out Action action)) {
+            action.Invoke();
         }
 
-        try {
-            int systemSampleRate = AudioSettings.outputSampleRate;
-            Log.LogInfo($"Detected System Sample Rate: {systemSampleRate} Hz");
+        if (!_isHooked && Character.localCharacter is not null) {
+            TryHookIntoPhotonVoice();
+        }
+    }
 
-            _recognizer = new VoiceRecognizer(modelPath, systemSampleRate);
+    private void TryHookIntoPhotonVoice() {
+        PhotonVoiceView voiceView = Character.localCharacter.GetComponent<PhotonVoiceView>();
+        
+        if (voiceView?.RecorderInUse is null) return;
+        Recorder recorder = voiceView.RecorderInUse;
+            
+        VoiceCurseHook hook = recorder.gameObject.AddComponent<VoiceCurseHook>();
+        hook.Initialize(this, recorder);
+            
+        _isHooked = true;
+        Log.LogInfo($"[VoiceCurse] Hooked into Recorder on: {recorder.gameObject.name}");
+    }
+
+    public void OnPhotonVoiceReady(Recorder recorder, LocalVoice voice) {
+        int photonRate = 48000; 
+        if (voice.Info.SamplingRate > 0) {
+            photonRate = voice.Info.SamplingRate;
+        }
+
+        Log.LogInfo($"[VoiceCurse] Photon Voice Ready. Sampling Rate: {photonRate} Hz");
+
+        SetupVoiceRecognition(photonRate);
+
+        if (voice is LocalVoiceAudio<float> floatVoice) {
+            if (_recognizer != null) floatVoice.AddPostProcessor(new VoiceCurseAudioProcessor(_recognizer));
+            Log.LogInfo("[VoiceCurse] Audio Processor Injected successfully!");
+        }
+        else {
+            Log.LogWarning($"[VoiceCurse] LocalVoice type mismatch: {voice.GetType().Name}");
+        }
+    }
+
+    private void SetupVoiceRecognition(int sampleRate) {
+        if (_voskModel == null) return;
+        if (_recognizer != null && _currentSampleRate == sampleRate) return;
+
+        try {
+            if (_recognizer != null) {
+                _recognizer.Stop();
+                _recognizer.Dispose();
+            }
+
+            _currentSampleRate = sampleRate;
+            _recognizer = new VoiceRecognizer(_voskModel, sampleRate);
             
             _recognizer.OnPhraseRecognized += (text) => {
                 _lastPartialText = "";
@@ -80,7 +137,6 @@ public partial class Plugin : BaseUnityPlugin {
             _recognizer.OnPartialResult += (text) => {
                 if (string.IsNullOrWhiteSpace(text) || text == _lastPartialText || text.Length < 2) return;
                 _lastPartialText = text;
-                
                 string captured = text;
                 _mainThreadActions.Enqueue(() => {
                     Log.LogInfo($"[Partial]: {captured}");
@@ -89,88 +145,45 @@ public partial class Plugin : BaseUnityPlugin {
             };
 
             _recognizer.Start();
-            Log.LogInfo("Voice Recognizer started successfully.");
         } catch (Exception ex) {
             Log.LogError($"Failed to start Voice Recognizer: {ex.Message}");
         }
     }
 
-    private void Update() {
-        while (_mainThreadActions.TryDequeue(out Action action)) {
-            action.Invoke();
-        }
-
-        if (!_isMicInitialized && _recognizer != null) {
-            SetupMicrophone();
-        }
-
-        ProcessMicrophoneData();
-    }
-
-    private void SetupMicrophone() {
-        _deviceName = null;
-        Microphone.GetDeviceCaps(_deviceName, out int minFreq, out int maxFreq);
-
-        int systemRate = AudioSettings.outputSampleRate;
-        int targetFreq = systemRate;
-
-        if (maxFreq > 0) {
-            targetFreq = Mathf.Clamp(systemRate, minFreq, maxFreq);
-        }
-
-        Log.LogInfo($"Starting Direct Microphone Capture. Target Rate: {targetFreq} Hz");
-        
-        _micClip = Microphone.Start(_deviceName, true, 10, targetFreq);
-        _isMicInitialized = true;
-        _lastSamplePos = 0;
-    }
-
-    private void ProcessMicrophoneData() {
-        if (!_isMicInitialized || _micClip is null || _recognizer == null) return;
-
-        int currentPos = Microphone.GetPosition(_deviceName);
-        
-        if (currentPos == _lastSamplePos) return;
-        
-        int samplesToRead;
-        if (currentPos > _lastSamplePos) {
-            samplesToRead = currentPos - _lastSamplePos;
-        } else {
-            samplesToRead = (_micClip.samples - _lastSamplePos) + currentPos;
-        }
-
-        if (samplesToRead <= 0) return;
-        
-        float[] samples = new float[samplesToRead];
-        
-        if (currentPos > _lastSamplePos) {
-            _micClip.GetData(samples, _lastSamplePos);
-        } else {
-            float[] endPart = new float[_micClip.samples - _lastSamplePos];
-            _micClip.GetData(endPart, _lastSamplePos);
-            
-            float[] startPart = new float[currentPos];
-            _micClip.GetData(startPart, 0);
-            
-            Array.Copy(endPart, 0, samples, 0, endPart.Length);
-            Array.Copy(startPart, 0, samples, endPart.Length, startPart.Length);
-        }
-        
-        short[] pcmBuffer = new short[samples.Length];
-        for (int i = 0; i < samples.Length; i++) {
-            pcmBuffer[i] = (short)(Mathf.Clamp(samples[i], -1f, 1f) * 32767);
-        }
-        
-        _recognizer.FeedAudio(pcmBuffer, pcmBuffer.Length);
-        
-        _lastSamplePos = currentPos;
-    }
-
     private void OnDestroy() {
-        if (_networker != null) {
-            PhotonNetwork.RemoveCallbackTarget(_networker);
-        }
+        if (_networker != null) PhotonNetwork.RemoveCallbackTarget(_networker);
         _recognizer?.Stop();
         _recognizer?.Dispose();
+        _voskModel?.Dispose();
+    }
+}
+
+public class VoiceCurseHook : MonoBehaviour {
+    private Plugin? _plugin;
+    private Recorder? _recorder;
+    private bool _hasInjected;
+
+    public void Initialize(Plugin plugin, Recorder recorder) {
+        _plugin = plugin;
+        _recorder = recorder;
+        CheckIfAlreadyReady();
+    }
+
+    private void CheckIfAlreadyReady() {
+        if (_recorder is null || !_recorder.IsCurrentlyTransmitting) return;
+        BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+        FieldInfo? field = typeof(Recorder).GetField("voice", flags);
+
+        if (field == null) return;
+        LocalVoice? voice = field.GetValue(_recorder) as LocalVoice;
+        if (voice == null) return;
+        _plugin?.OnPhotonVoiceReady(_recorder, voice);
+        _hasInjected = true;
+    }
+
+    private void PhotonVoiceCreated(PhotonVoiceCreatedParams p) {
+        if (_hasInjected) return;
+        if (_recorder is not null) _plugin?.OnPhotonVoiceReady(_recorder, p.Voice);
+        _hasInjected = true;
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Threading;
 using UnityEngine;
 using Vosk;
@@ -8,7 +7,6 @@ using Vosk;
 namespace VoiceCurse.Core;
 
 public class VoiceRecognizer : IVoiceRecognizer {
-    private readonly Model _model;
     private readonly VoskRecognizer _recognizer;
     private readonly ConcurrentQueue<short[]> _audioQueue = new();
     private Thread? _workerThread;
@@ -16,20 +14,16 @@ public class VoiceRecognizer : IVoiceRecognizer {
 
     public event Action<string>? OnPhraseRecognized;
     public event Action<string>? OnPartialResult;
-    public VoiceRecognizer(string modelPath, float sampleRate) {
-        if (!Directory.Exists(modelPath)) {
-            throw new DirectoryNotFoundException("Vosk model not found at: " + modelPath);
-        }
-
+    
+    public VoiceRecognizer(Model model, float sampleRate) {
         try {
-            _model = new Model(modelPath);
-            _recognizer = new VoskRecognizer(_model, sampleRate);
+            _recognizer = new VoskRecognizer(model, sampleRate);
             _recognizer.SetMaxAlternatives(0);
             _recognizer.SetWords(true);
             
-            Debug.Log($"[VoiceCurse] Initialized Vosk with Sample Rate: {sampleRate} Hz");
+            Debug.Log($"[VoiceCurse] Initialized VoskRecognizer with Rate: {sampleRate} Hz");
         } catch (Exception e) {
-            Debug.LogError("Failed to initialize Vosk: " + e.Message);
+            Debug.LogError("Failed to create VoskRecognizer: " + e.Message);
             throw;
         }
     }
@@ -105,6 +99,5 @@ public class VoiceRecognizer : IVoiceRecognizer {
     public void Dispose() {
         Stop();
         _recognizer.Dispose();
-        _model.Dispose();
     }
 }
