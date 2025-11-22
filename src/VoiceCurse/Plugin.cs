@@ -94,7 +94,7 @@ public partial class Plugin : BaseUnityPlugin {
             _tapper.Initialize(_recognizer, muteOutput: true);
         }
         
-        string? deviceName = null; // System Default
+        string? deviceName = null;
 
         Log.LogInfo("Starting Microphone Capture on: System Default");
             
