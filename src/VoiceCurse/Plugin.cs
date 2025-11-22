@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Runtime.InteropServices;
 using BepInEx;
 using BepInEx.Logging;
 using UnityEngine;
@@ -12,7 +13,10 @@ namespace VoiceCurse;
 [BepInAutoPlugin]
 public partial class Plugin : BaseUnityPlugin {
     private static ManualLogSource Log { get; set; } = null!;
-        
+    
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern bool SetDllDirectory(string lpPathName);
+
     private VoiceCurseConfig? _config;
     private IVoiceRecognizer? _recognizer;
     private VoiceEventHandler? _eventHandler;
@@ -26,7 +30,15 @@ public partial class Plugin : BaseUnityPlugin {
     private void Awake() {
         Log = Logger;
         Log.LogInfo($"Plugin {Name} is loading...");
-            
+        string? pluginDir = Path.GetDirectoryName(Info.Location);
+        
+        if (Directory.Exists(pluginDir)) {
+            SetDllDirectory(pluginDir);
+            Log.LogInfo($"Added DLL search directory: {pluginDir}");
+        } else {
+            Log.LogError($"Could not find plugin directory: {pluginDir}");
+        }
+
         _config = new VoiceCurseConfig(Config);
         
         if (_config != null) {

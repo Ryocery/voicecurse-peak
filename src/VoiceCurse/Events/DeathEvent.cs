@@ -7,7 +7,10 @@ using VoiceCurse.Core;
 namespace VoiceCurse.Events;
 
 public class DeathEvent(VoiceCurseConfig config) : IVoiceEvent {
-    private readonly HashSet<string> _triggerWords = ["die", "death", "dead", "suicide", "kill"];
+    private readonly HashSet<string> _triggerWords = [
+        "die", "death", "dead", "suicide", "kill", "deceased", "skeleton", 
+        "skull", "calcium", "bones", "bone", "perish", "demise", "expire", 
+        "fatal", "mortality", "mortal"];
 
     public bool TryExecute(string spokenWord, string fullSentence) {
         bool match = _triggerWords.Any(fullSentence.Contains);
