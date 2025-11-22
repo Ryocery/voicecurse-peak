@@ -10,11 +10,13 @@ using VoiceCurse.Audio;
 namespace VoiceCurse {
     [BepInAutoPlugin]
     public partial class Plugin : BaseUnityPlugin {
-        private static ManualLogSource Log { get; set; } = null!;
+        internal static ManualLogSource Log { get; set; } = null!;
         private IVoiceRecognizer? _recognizer;
         private AudioStreamTapper? _tapper;
         private AudioSource? _micSource;
         private readonly ConcurrentQueue<Action> _mainThreadActions = new();
+
+        private string _lastPartialText = "";
 
         private void Awake() {
             Log = Logger;
@@ -33,6 +35,8 @@ namespace VoiceCurse {
             try {
                 _recognizer = new VoiceRecognizer(modelPath);
                 _recognizer.OnPhraseRecognized += OnPhraseRecognized;
+                _recognizer.OnPartialResult += OnPartialResult;
+                
                 _recognizer.Start();
 
                 Log.LogInfo("Voice Recognizer started successfully.");
@@ -45,14 +49,14 @@ namespace VoiceCurse {
             while (_mainThreadActions.TryDequeue(out Action action)) {
                 action.Invoke();
             }
-            
+
             if (_micSource == null && _recognizer != null) {
                 SetupMicrophone();
             }
         }
 
         private void SetupMicrophone() {
-            GameObject micObj = new("VoiceCurse_Mic");
+            GameObject micObj = new GameObject("VoiceCurse_Mic");
             DontDestroyOnLoad(micObj);
             
             _micSource = micObj.AddComponent<AudioSource>();
@@ -63,6 +67,7 @@ namespace VoiceCurse {
             }
 
             Log.LogInfo("Starting Microphone Capture...");
+            
             _micSource.clip = Microphone.Start(null, true, 10, 48000);
             _micSource.loop = true;
             
@@ -70,10 +75,24 @@ namespace VoiceCurse {
             
             _micSource.Play();
         }
-
+        
         private void OnPhraseRecognized(string text) {
             _mainThreadActions.Enqueue(() => {
-                Log.LogInfo($"[SPEECH DETECTED]: {text}");
+                Log.LogInfo($"[FINAL]: {text}");
+                _lastPartialText = "";
+            });
+        }
+        
+        private void OnPartialResult(string text) {
+            if (text == _lastPartialText || text.Length < 2) return;
+            
+            _lastPartialText = text;
+
+            _mainThreadActions.Enqueue(() => {
+                Log.LogInfo($"[PARTIAL]: {text}");
+                if (text.Contains("open sesame")) {
+                    Log.LogWarning("MAGIC CAST: OPEN SESAME!");
+                }
             });
         }
 
