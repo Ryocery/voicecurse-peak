@@ -8,8 +8,8 @@ namespace VoiceCurse.Events;
 public class DropEvent(VoiceCurseConfig config) : IVoiceEvent {
     private readonly HashSet<string> _keywords = [
         "drop", "dropping", "dropped", "oops", "whoops", 
-        "butterfingers", "fumble", "fumbled", "slip", "slipping",
-        "release", "discard", "off"
+        "butterfingers", "fumble", "fumbled", "slip", "slipped", 
+        "slipping", "release", "discard", "off"
     ];
 
     public bool TryExecute(string spokenWord, string fullSentence) {
