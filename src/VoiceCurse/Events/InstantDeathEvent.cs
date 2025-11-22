@@ -6,7 +6,7 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Events {
     public class InstantDeathEvent(VoiceCurseConfig config) : IVoiceEvent {
-        private readonly HashSet<string> _triggerWords = new() { "die", "death", "suicide", "kill me" };
+        private readonly HashSet<string> _triggerWords = ["die", "death", "suicide", "kill me"];
         private float _lastTriggerTime;
 
         public bool TryExecute(string spokenWord, string fullSentence) {

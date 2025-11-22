@@ -4,22 +4,54 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Events {
     public class AfflictionEvent(VoiceCurseConfig config) : IVoiceEvent {
-        private readonly Dictionary<CharacterAfflictions.STATUSTYPE, float> _cooldowns = new();
-        private const float CooldownSeconds = 5.0f;
+        private readonly Dictionary<string, CharacterAfflictions.STATUSTYPE> _keywords = new() {
+            { "damage", CharacterAfflictions.STATUSTYPE.Injury },
+            { "hurt", CharacterAfflictions.STATUSTYPE.Injury },
+            { "injury", CharacterAfflictions.STATUSTYPE.Injury },
+            { "injured", CharacterAfflictions.STATUSTYPE.Injury },
+            { "pain", CharacterAfflictions.STATUSTYPE.Injury },
+            { "ow", CharacterAfflictions.STATUSTYPE.Injury },
+            
+            { "hunger", CharacterAfflictions.STATUSTYPE.Hunger },
+            { "hungry", CharacterAfflictions.STATUSTYPE.Hunger },
+            { "starving", CharacterAfflictions.STATUSTYPE.Hunger },
+            { "starve", CharacterAfflictions.STATUSTYPE.Hunger },
+            { "food", CharacterAfflictions.STATUSTYPE.Hunger },
+            
+            { "freezing", CharacterAfflictions.STATUSTYPE.Cold },
+            { "cold", CharacterAfflictions.STATUSTYPE.Cold },
+            { "blizzard", CharacterAfflictions.STATUSTYPE.Cold },
+            { "shiver", CharacterAfflictions.STATUSTYPE.Cold },
+            { "ice", CharacterAfflictions.STATUSTYPE.Cold },
+            
+            { "hot", CharacterAfflictions.STATUSTYPE.Hot },
+            { "burning", CharacterAfflictions.STATUSTYPE.Hot },
+            { "fire", CharacterAfflictions.STATUSTYPE.Hot },
+            { "melt", CharacterAfflictions.STATUSTYPE.Hot },
+            
+            { "poison", CharacterAfflictions.STATUSTYPE.Poison },
+            { "sick", CharacterAfflictions.STATUSTYPE.Poison },
+            { "vomit", CharacterAfflictions.STATUSTYPE.Poison },
+            { "toxic", CharacterAfflictions.STATUSTYPE.Poison },
+            
+            { "spores", CharacterAfflictions.STATUSTYPE.Spores },
+            { "fungus", CharacterAfflictions.STATUSTYPE.Spores },
+            { "mushroom", CharacterAfflictions.STATUSTYPE.Spores },
+            { "cough", CharacterAfflictions.STATUSTYPE.Spores },
+            
+            { "tired", CharacterAfflictions.STATUSTYPE.Drowsy },
+            { "sleepy", CharacterAfflictions.STATUSTYPE.Drowsy },
+            { "sleep", CharacterAfflictions.STATUSTYPE.Drowsy },
+            { "yawn", CharacterAfflictions.STATUSTYPE.Drowsy }
+        };
 
         public bool TryExecute(string spokenWord, string fullSentence) {
-            if (!config.Keywords.TryGetValue(spokenWord, out CharacterAfflictions.STATUSTYPE statusType)) {
+            if (!_keywords.TryGetValue(spokenWord, out CharacterAfflictions.STATUSTYPE statusType)) {
                 return false;
             }
             
-            if (_cooldowns.TryGetValue(statusType, out float lastTime)) {
-                if (Time.time - lastTime < CooldownSeconds) {
-                    return false;
-                }
-            }
-            
             Character localChar = Character.localCharacter;
-            if (localChar is null || localChar.refs == null || localChar.refs.afflictions == null) {
+            if (localChar?.refs?.afflictions is null) {
                 return false;
             }
 
@@ -34,8 +66,6 @@ namespace VoiceCurse.Events {
             }
             
             localChar.refs.afflictions.AddStatus(statusType, amount);
-            
-            _cooldowns[statusType] = Time.time;
             return true;
         }
     }
