@@ -17,8 +17,7 @@ public class AfflictionEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
     
     private readonly Dictionary<string, CharacterAfflictions.STATUSTYPE> _wordToType = 
         WordGroups.SelectMany(g => g.Value.Select(w => (Word: w, Type: g.Key)))
-                  .ToDictionary(x => x.Word, x => x.Type);
-    // Thank you LINQ, very cool.
+            .ToDictionary(x => x.Word, x => x.Type);
 
     protected override IEnumerable<string> GetKeywords() => _wordToType.Keys;
 

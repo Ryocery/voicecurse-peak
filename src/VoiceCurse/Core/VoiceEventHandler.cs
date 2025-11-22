@@ -3,17 +3,27 @@ using VoiceCurse.Events;
 
 namespace VoiceCurse.Core;
 
-public class VoiceEventHandler(VoiceCurseConfig config) {
-    private readonly List<IVoiceEvent> _events = [
-        new DeathEvent(config),
-        new AfflictionEvent(config),
-        new SleepEvent(config),
-        new ExplodeEvent(config),
-        new LaunchEvent(config),
-        new DropEvent(config),
-    ];
-        
+public class VoiceEventHandler {
+    public static readonly Dictionary<string, IVoiceEvent> Events = new();
+    
     private readonly Dictionary<string, int> _previousWordCounts = new();
+
+    public VoiceEventHandler(VoiceCurseConfig config) {
+        List<IVoiceEvent> eventList = [
+            new DeathEvent(config),
+            new AfflictionEvent(config),
+            new SleepEvent(config),
+            new ExplodeEvent(config),
+            new LaunchEvent(config),
+            new DropEvent(config)
+        ];
+
+        Events.Clear();
+        foreach (IVoiceEvent? evt in eventList) {
+            string name = evt.GetType().Name.Replace("Event", "");
+            Events[name] = evt;
+        }
+    }
 
     public void HandleSpeech(string text, bool isFinal) {
         if (string.IsNullOrWhiteSpace(text)) return;
@@ -38,7 +48,7 @@ public class VoiceEventHandler(VoiceCurseConfig config) {
             if (diff <= 0) continue;
                 
             for (int i = 0; i < diff; i++) {
-                foreach (IVoiceEvent evt in _events) {
+                foreach (IVoiceEvent evt in Events.Values) {
                     evt.TryExecute(word, lowerText);
                 }
             }

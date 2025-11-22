@@ -5,8 +5,10 @@ using System.Runtime.InteropServices;
 using BepInEx;
 using BepInEx.Logging;
 using UnityEngine;
+using Photon.Pun;
 using VoiceCurse.Core;
 using VoiceCurse.Audio;
+using VoiceCurse.Networking;
 
 namespace VoiceCurse;
 
@@ -22,9 +24,9 @@ public partial class Plugin : BaseUnityPlugin {
     private VoiceEventHandler? _eventHandler;
     private AudioStreamTapper? _tapper;
     private AudioSource? _micSource;
+    private VoiceCurseNetworker? _networker;
         
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
-    
     private volatile string _lastPartialText = "";
 
     private void Awake() {
@@ -44,6 +46,9 @@ public partial class Plugin : BaseUnityPlugin {
         if (_config != null) {
             _eventHandler = new VoiceEventHandler(_config);
         }
+        
+        _networker = new VoiceCurseNetworker();
+        PhotonNetwork.AddCallbackTarget(_networker);
 
         SetupVoiceRecognition();
     }
@@ -106,7 +111,7 @@ public partial class Plugin : BaseUnityPlugin {
             _tapper.Initialize(_recognizer, muteOutput: true);
         }
         
-        string? deviceName = null;
+        string? deviceName = null; // Uses system default
 
         Log.LogInfo("Starting Microphone Capture on: System Default");
             
@@ -119,6 +124,9 @@ public partial class Plugin : BaseUnityPlugin {
     }
 
     private void OnDestroy() {
+        if (_networker != null) {
+            PhotonNetwork.RemoveCallbackTarget(_networker);
+        }
         _recognizer?.Stop();
         _recognizer?.Dispose();
     }
