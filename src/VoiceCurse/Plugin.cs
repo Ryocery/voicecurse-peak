@@ -11,16 +11,22 @@ namespace VoiceCurse {
     [BepInAutoPlugin]
     public partial class Plugin : BaseUnityPlugin {
         internal static ManualLogSource Log { get; set; } = null!;
+        
+        private VoiceCurseConfig? _config;
         private IVoiceRecognizer? _recognizer;
+        private VoiceEventHandler? _eventHandler;
+        
         private AudioStreamTapper? _tapper;
         private AudioSource? _micSource;
+        
         private readonly ConcurrentQueue<Action> _mainThreadActions = new();
-
-        private string _lastPartialText = "";
 
         private void Awake() {
             Log = Logger;
             Log.LogInfo($"Plugin {Name} is loading...");
+            
+            _config = new VoiceCurseConfig(Config);
+            
             SetupVoiceRecognition();
         }
 
@@ -34,10 +40,11 @@ namespace VoiceCurse {
 
             try {
                 _recognizer = new VoiceRecognizer(modelPath);
-                _recognizer.OnPhraseRecognized += OnPhraseRecognized;
-                _recognizer.OnPartialResult += OnPartialResult;
-                
                 _recognizer.Start();
+                
+                if (_config != null) {
+                    _eventHandler = new VoiceEventHandler(_config, _recognizer);
+                }
 
                 Log.LogInfo("Voice Recognizer started successfully.");
             } catch (Exception ex) {
@@ -50,7 +57,7 @@ namespace VoiceCurse {
                 action.Invoke();
             }
 
-            if (_micSource == null && _recognizer != null) {
+            if (_micSource is null && _recognizer != null) {
                 SetupMicrophone();
             }
         }
@@ -75,28 +82,9 @@ namespace VoiceCurse {
             
             _micSource.Play();
         }
-        
-        private void OnPhraseRecognized(string text) {
-            _mainThreadActions.Enqueue(() => {
-                Log.LogInfo($"[FINAL]: {text}");
-                _lastPartialText = "";
-            });
-        }
-        
-        private void OnPartialResult(string text) {
-            if (text == _lastPartialText || text.Length < 2) return;
-            
-            _lastPartialText = text;
-
-            _mainThreadActions.Enqueue(() => {
-                Log.LogInfo($"[PARTIAL]: {text}");
-                if (text.Contains("open sesame")) {
-                    Log.LogWarning("MAGIC CAST: OPEN SESAME!");
-                }
-            });
-        }
 
         private void OnDestroy() {
+            _eventHandler?.Dispose();
             _recognizer?.Stop();
             _recognizer?.Dispose();
         }
