@@ -15,21 +15,40 @@ public class DropEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
         if (player.data.dead) return false;
+        string? backpackPrefab = ScatterBackpackContents(player);
 
-        ScatterBackpackContents(player);
-        player.refs.items.DropAllItems(includeBackpack: true);
+        if (!string.IsNullOrEmpty(backpackPrefab)) {
+            Vector3 dropPos = player.Center + player.transform.forward * 0.5f + Vector3.up * 0.5f;
+            GameObject myBag = PhotonNetwork.Instantiate(
+                "0_Items/" + backpackPrefab, 
+                dropPos, 
+                Quaternion.identity
+            );
+            
+            if (myBag.TryGetComponent(out PhotonView pv)) {
+                pv.RPC("SetItemInstanceDataRPC", RpcTarget.All, player.player.backpackSlot.data);
+                pv.RPC("SetKinematicRPC", RpcTarget.All, false, dropPos, Quaternion.identity);
+            }
+        }
+
+        player.refs.items.DropAllItems(includeBackpack: false);
+        
+        if (!player.player.GetItemSlot(3).IsEmpty()) {
+            player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, (byte)3, new Vector3(0, -5000, 0));
+        }
         
         return true;
     }
 
-    private void ScatterBackpackContents(Character player) {
+    private string? ScatterBackpackContents(Character player) {
         ItemSlot backpackSlot = player.player.GetItemSlot(3);
         
         if (backpackSlot.IsEmpty() || 
             !backpackSlot.data.TryGetDataEntry(DataEntryKey.BackpackData, out BackpackData backpackData)) {
-            return;
+            return null;
         }
 
+        string backpackPrefabName = backpackSlot.GetPrefabName();
         Vector3 dropOrigin = player.Center;
         
         foreach (ItemSlot internalSlot in backpackData.itemSlots) {
@@ -54,5 +73,7 @@ public class DropEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
             
             internalSlot.EmptyOut();
         }
+
+        return backpackPrefabName;
     }
 }

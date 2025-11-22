@@ -9,7 +9,8 @@ public class ExplodeEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = [
         "explosion", "dynamite", "grenade", "explodes", "explode", 
         "blowing", "blew", "blow", "boom", "nuke", "bomb", "bombs", 
-        "nuclear", "detonate", "detonation"
+        "nuclear", "detonate", "detonation", "explosive", "blast", "blasted",
+        "kaboom"
     ];
         
     private static GameObject? _cachedExplosionPrefab;

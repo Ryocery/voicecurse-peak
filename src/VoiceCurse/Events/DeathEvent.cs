@@ -7,52 +7,92 @@ using VoiceCurse.Core;
 namespace VoiceCurse.Events;
 
 public class DeathEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
-    private readonly HashSet<string> _keywords = [
+    private readonly HashSet<string> _deathKeywords = [
         "die", "death", "dead", "suicide", "kill", "deceased", "skeleton", 
-        "skull", "bones", "bone", "perish", "demise", "expire", 
-        "expired", "fatal", "mortality", "mortal", "calcium", "milk"
+        "skull", "bones", "bone", "perish", "demise", "expire", "expired", 
+        "fatal", "mortality", "mortal", "died", "slain", "dying"
     ];
+    
+    private readonly Dictionary<string, string> _transmuteMap = new() {
+        { "milk", "Fortified Milk" },
+        { "calcium", "Fortified Milk" },
+        { "cactus", "Cactus" },
+        { "cacti", "Cactus" },
+        { "coconut", "Coconut" },
+        { "apple", "Red Crispberry" },
+        { "banana", "Berrynana Peel Yellow" },
+        { "egg", "Egg" },
+    };
 
-    private static Item? _cachedMilkItem;
+    private readonly Dictionary<string, Item?> _itemCache = new();
 
-    protected override IEnumerable<string> GetKeywords() => _keywords;
+    protected override IEnumerable<string> GetKeywords() => _deathKeywords.Concat(_transmuteMap.Keys);
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
         if (player.data.dead) return false;
 
-        if (fullSentence.Contains("milk")) {
-            SpawnMilk(player);
+        string? targetItemName = null;
+        
+        if (_transmuteMap.TryGetValue(matchedKeyword, out string? search)) {
+            targetItemName = search;
+        } else {
+            string? key = _transmuteMap.Keys.FirstOrDefault(fullSentence.Contains);
+            if (key != null) targetItemName = _transmuteMap[key];
+        }
+
+        if (targetItemName != null) {
+            TransmuteInventory(player, targetItemName);
         }
             
         player.photonView.RPC("RPCA_Die", RpcTarget.All, player.Center);
         return true;
     }
 
-    private void SpawnMilk(Character player) {
-        _cachedMilkItem ??= Resources.FindObjectsOfTypeAll<Item>().FirstOrDefault(i => i.name.Contains("Milk") || (i.UIData != null && i.UIData.itemName.Contains("Milk")));
-        if (_cachedMilkItem is null) return;
+    private void TransmuteInventory(Character player, string itemNameSearch) {
+        if (!_itemCache.TryGetValue(itemNameSearch, out Item? targetItem)) {
+            targetItem = Resources.FindObjectsOfTypeAll<Item>().FirstOrDefault(i => i.name.Contains(itemNameSearch) || (i.UIData != null && i.UIData.itemName.Contains(itemNameSearch)));
+            _itemCache[itemNameSearch] = targetItem;
+        }
+
+        if (targetItem == null) {
+            if (Config.EnableDebugLogs.Value) Debug.LogWarning($"[VoiceCurse] Could not find item matching '{itemNameSearch}'");
+            return;
+        }
+
+        string prefabPath = "0_Items/" + targetItem.name;
+        int countToSpawn = 0;
         
-        int itemCount = 0;
         if (player.player?.itemSlots != null) {
-            itemCount += player.player.itemSlots.Count(slot => !slot.IsEmpty());
-        }
-        if (player.player?.backpackSlot is { hasBackpack: true }) {
-            if (player.player.backpackSlot.data.TryGetDataEntry(DataEntryKey.BackpackData, out BackpackData backpackData)) {
-                itemCount += backpackData.FilledSlotCount();
+            foreach (ItemSlot slot in player.player.itemSlots) {
+                if (slot.IsEmpty()) continue;
+                countToSpawn++;
+                slot.EmptyOut();
             }
         }
         
-        if (itemCount == 0) {
-            player.refs.items.SpawnItemInHand(_cachedMilkItem.name);
-        } else {
-            foreach (ItemSlot? slot in player.player!.itemSlots) slot.EmptyOut();
-            if (player.player.backpackSlot is { hasBackpack: true } && 
-                player.player.backpackSlot.data.TryGetDataEntry(DataEntryKey.BackpackData, out BackpackData bpData)) {
-                foreach (ItemSlot? slot in bpData.itemSlots) slot.EmptyOut();
+        ItemSlot? backpackSlot = player.player?.GetItemSlot(3);
+        if (backpackSlot != null && !backpackSlot.IsEmpty()) {
+            if (backpackSlot.data.TryGetDataEntry(DataEntryKey.BackpackData, out BackpackData backpackData)) {
+                countToSpawn += backpackData.FilledSlotCount();
             }
-            for (int i = 0; i < itemCount; i++) {
-                player.refs.items.SpawnItemInHand(_cachedMilkItem.name);
+            countToSpawn++;
+            backpackSlot.EmptyOut();
+        }
+        
+        Vector3 spawnOrigin = player.Center;
+        if (countToSpawn == 0) countToSpawn = 1;
+
+        for (int i = 0; i < countToSpawn; i++) {
+            Vector3 pos = spawnOrigin + (Random.insideUnitSphere * 0.5f);
+            pos.y = spawnOrigin.y + 0.5f; 
+
+            GameObject obj = PhotonNetwork.Instantiate(prefabPath, pos, Quaternion.identity);
+            
+            if (obj.TryGetComponent(out PhotonView pv)) {
+                pv.RPC("SetKinematicRPC", RpcTarget.All, false, pos, Quaternion.identity);
             }
         }
+        
+        player.refs.afflictions.UpdateWeight();
     }
 }

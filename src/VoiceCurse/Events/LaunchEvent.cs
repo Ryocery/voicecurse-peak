@@ -8,7 +8,8 @@ namespace VoiceCurse.Events;
 public class LaunchEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = [
         "launch", "fly", "blast", "boost", "ascend", "lift", "up", 
-        "cannon", "rocket", "soar", "jump", "spring", "catapult"
+        "cannon", "canon", "rocket", "soar", "jump", "spring", "catapult",
+        "fling", "hurl", "propel", "shoot", "skyrocket", "takeoff"
     ];
     
     private static GameObject? _cachedLaunchSFX;
