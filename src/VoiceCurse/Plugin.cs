@@ -11,7 +11,7 @@ namespace VoiceCurse;
 
 [BepInAutoPlugin]
 public partial class Plugin : BaseUnityPlugin {
-    internal static ManualLogSource Log { get; set; } = null!;
+    private static ManualLogSource Log { get; set; } = null!;
         
     private VoiceCurseConfig? _config;
     private IVoiceRecognizer? _recognizer;
