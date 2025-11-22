@@ -3,7 +3,7 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Audio;
 
-public class VoiceCurseAudioProcessor(IVoiceRecognizer recognizer) : IProcessor<float> {
+public class VoiceProcessor(IVoiceRecognizer recognizer) : IProcessor<float> {
     public float[]? Process(float[]? buf) {
         if (buf == null || buf.Length == 0) return buf;
         

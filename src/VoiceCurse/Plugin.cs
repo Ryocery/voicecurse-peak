@@ -105,7 +105,7 @@ public partial class Plugin : BaseUnityPlugin {
         SetupVoiceRecognition(photonRate);
 
         if (voice is LocalVoiceAudio<float> floatVoice) {
-            if (_recognizer != null) floatVoice.AddPostProcessor(new VoiceCurseAudioProcessor(_recognizer));
+            if (_recognizer != null) floatVoice.AddPostProcessor(new VoiceProcessor(_recognizer));
             Log.LogInfo("[VoiceCurse] Audio Processor Injected successfully!");
         }
         else {
