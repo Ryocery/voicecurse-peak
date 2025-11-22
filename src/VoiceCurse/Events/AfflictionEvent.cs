@@ -24,7 +24,7 @@ namespace VoiceCurse.Events {
             }
             
             Character localChar = Character.localCharacter;
-            if (localChar?.refs?.afflictions == null) return false;
+            if (localChar?.refs?.afflictions is null) return false;
             if (localChar.data.dead || localChar.data.fullyPassedOut) return false;
             
             float amount = Random.Range(config.MinAfflictionPercent.Value, config.MaxAfflictionPercent.Value);
