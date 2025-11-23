@@ -82,7 +82,7 @@ public class TransmuteEvent(Config config) : VoiceEventBase(config) {
             string prefabPath = "0_Items/" + cleanName;
             
             GameObject obj = PhotonNetwork.Instantiate(prefabPath, pos, Quaternion.identity);
-            if (obj != null && obj.TryGetComponent(out PhotonView pv)) {
+            if (obj && obj.TryGetComponent(out PhotonView pv)) {
                 pv.RPC("SetKinematicRPC", RpcTarget.All, false, pos, Quaternion.identity);
             }
         }
@@ -96,10 +96,7 @@ public class TransmuteEvent(Config config) : VoiceEventBase(config) {
             _itemCache.Remove(searchName);
         }
 
-        Item? foundItem = Resources.FindObjectsOfTypeAll<Item>()
-            .FirstOrDefault(i => i.name.Contains(searchName) || 
-                                (i.UIData != null && i.UIData.itemName.Contains(searchName)));
-        
+        Item? foundItem = Resources.FindObjectsOfTypeAll<Item>().FirstOrDefault(i => i.name.Contains(searchName) || (i.UIData != null && i.UIData.itemName.Contains(searchName)));
         _itemCache[searchName] = foundItem;
         
         if (!foundItem && Config.EnableDebugLogs.Value) {
