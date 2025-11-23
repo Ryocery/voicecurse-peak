@@ -11,7 +11,7 @@ public class AfflictionEvent(Config config) : VoiceEventBase(config) {
         { CharacterAfflictions.STATUSTYPE.Cold,   ["freezing", "cold", "blizzard", "shiver", "ice", "frozen", "chill", "frigid", "winter"] },
         { CharacterAfflictions.STATUSTYPE.Hot,    ["hot", "burning", "fire", "melt", "scorching", "heat", "burn", "pyro", "flame", "summer"] },
         { CharacterAfflictions.STATUSTYPE.Poison, ["poison", "sick", "vomit", "toxic", "venom", "contaminate"] },
-        { CharacterAfflictions.STATUSTYPE.Spores, ["spore", "infected"]},
+        { CharacterAfflictions.STATUSTYPE.Spores, ["spore"]},
     };
     
     private readonly Dictionary<string, CharacterAfflictions.STATUSTYPE> _wordToType = 
