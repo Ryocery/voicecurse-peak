@@ -22,7 +22,7 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
         if (matchedKeyword == null) return false;
         
         Character localChar = Character.localCharacter;
-        if (localChar == null || !localChar.gameObject.activeInHierarchy) return false;
+        if (!localChar || !localChar.gameObject.activeInHierarchy) return false;
         
         _lastExecutionTime = Time.time;
         
