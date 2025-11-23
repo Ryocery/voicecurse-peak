@@ -56,7 +56,7 @@ public class EventNetworker : IOnEventCallback {
 
         DisplayNotification(charName, playerColor, spokenWord, matchedKeyword, eventName);
 
-        if (VoiceEventHandler.Events.TryGetValue(eventName, out IVoiceEvent evt)) {
+        if (EventHandler.Events.TryGetValue(eventName, out IVoiceEvent evt)) {
             evt.PlayEffects(position);
         }
     }

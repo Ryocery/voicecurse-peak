@@ -14,6 +14,7 @@ using VoiceCurse.Core;
 using VoiceCurse.Audio;
 using VoiceCurse.External;
 using VoiceCurse.Interfaces;
+using EventHandler = VoiceCurse.Core.EventHandler;
 
 namespace VoiceCurse;
 
@@ -26,7 +27,7 @@ public partial class Plugin : BaseUnityPlugin {
 
     private Config? _config;
     private IVoiceRecognizer? _recognizer;
-    private VoiceEventHandler? _eventHandler;
+    private EventHandler? _eventHandler;
     private EventNetworker? _networker;
     private Model? _voskModel;
     
@@ -48,7 +49,7 @@ public partial class Plugin : BaseUnityPlugin {
 
         _config = new Config(Config);
         if (_config != null) {
-            _eventHandler = new VoiceEventHandler(_config);
+            _eventHandler = new EventHandler(_config);
         }
 
         _networker = new EventNetworker();

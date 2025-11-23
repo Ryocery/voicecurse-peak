@@ -4,12 +4,12 @@ using VoiceCurse.Interfaces;
 
 namespace VoiceCurse.Core;
 
-public class VoiceEventHandler {
+public class EventHandler {
     public static readonly Dictionary<string, IVoiceEvent> Events = new();
     
     private readonly Dictionary<string, int> _previousWordCounts = new();
 
-    public VoiceEventHandler(Config config) {
+    public EventHandler(Config config) {
         List<IVoiceEvent> eventList = [
             new DeathEvent(config),
             new AfflictionEvent(config),
