@@ -8,7 +8,7 @@ public class ExplodeEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = [
         "explosion", "dynamite", "grenade", "explodes", "explode", 
         "blowing", "blew", "blow", "boom", "nuke", "bomb", "bombs", 
-        "nuclear", "detonate", "detonation", "explosive", "blast", "blasted",
+        "nuclear", "detonate", "detonation", "explosive", "blast",
         "kaboom"
     ];
         
