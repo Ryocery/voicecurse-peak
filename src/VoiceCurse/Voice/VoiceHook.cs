@@ -7,11 +7,11 @@ using VoiceCurse.Handlers;
 namespace VoiceCurse.Voice;
 
 public class VoiceHook : MonoBehaviour {
-    private VoiceCurseManager? _manager;
+    private VoiceHandler? _manager;
     private Recorder? _recorder;
     private bool _hasInjected;
 
-    public void Initialize(VoiceCurseManager manager, Recorder recorder) {
+    public void Initialize(VoiceHandler manager, Recorder recorder) {
         _manager = manager;
         _recorder = recorder;
         CheckIfReady();

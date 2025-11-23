@@ -15,7 +15,7 @@ using Vosk;
 
 namespace VoiceCurse.Handlers;
 
-public class VoiceCurseManager : IDisposable {
+public class VoiceHandler : IDisposable {
     private readonly ManualLogSource _log;
     private readonly Config _config;
 
@@ -34,7 +34,7 @@ public class VoiceCurseManager : IDisposable {
     private readonly ConcurrentQueue<Action> _mainThreadActions = new();
     private volatile string _lastPartialText = "";
 
-    public VoiceCurseManager(ManualLogSource logger, Config config, string pluginDir) {
+    public VoiceHandler(ManualLogSource logger, Config config, string pluginDir) {
         _log = logger;
         _config = config;
 

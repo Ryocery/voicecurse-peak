@@ -9,7 +9,7 @@ namespace VoiceCurse;
 public partial class Plugin : BaseUnityPlugin {
     private static ManualLogSource Log { get; set; } = null!;
     private Config? _config;
-    private VoiceCurseManager? _manager;
+    private VoiceHandler? _voiceHandler;
 
     private void Awake() {
         Log = Logger;
@@ -18,16 +18,16 @@ public partial class Plugin : BaseUnityPlugin {
         
         string? pluginDir = Path.GetDirectoryName(Info.Location);
         if (string.IsNullOrEmpty(pluginDir)) pluginDir = Paths.PluginPath;
-        _manager = new VoiceCurseManager(Log, _config, pluginDir);
+        _voiceHandler = new VoiceHandler(Log, _config, pluginDir);
         
         Log.LogInfo($"Plugin {Name} loaded successfully.");
     }
 
     private void Update() {
-        _manager?.Update();
+        _voiceHandler?.Update();
     }
 
     private void OnDestroy() {
-        _manager?.Dispose();
+        _voiceHandler?.Dispose();
     }
 }

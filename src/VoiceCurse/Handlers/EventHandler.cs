@@ -14,10 +14,10 @@ public class EventHandler {
 
     public EventHandler(Config config) {
         Events.Clear();
-        RegisterEventsAutomatically(config);
+        RegisterEvents(config);
     }
     
-    private static void RegisterEventsAutomatically(Config config) {
+    private static void RegisterEvents(Config config) {
         IEnumerable<Type> eventTypes = Assembly.GetExecutingAssembly()
             .GetTypes()
             .Where(t => typeof(VoiceEventBase)
@@ -30,7 +30,7 @@ public class EventHandler {
                 Events[name] = evt;
                     
                 if (config.EnableDebugLogs.Value) {
-                    Debug.Log($"[VoiceCurse] Automatically registered event: {name}");
+                    Debug.Log($"[VoiceCurse] Registered event: {name}");
                 }
             } catch (Exception e) {
                 Debug.LogError($"[VoiceCurse] Failed to register event {type.Name}: {e.Message}");
