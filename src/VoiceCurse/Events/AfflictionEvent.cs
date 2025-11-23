@@ -5,7 +5,7 @@ using UnityEngine;
 namespace VoiceCurse.Events;
 
 public class AfflictionEvent(Config config) : VoiceEventBase(config) {
-    private static readonly Dictionary<CharacterAfflictions.STATUSTYPE, string[]> WordGroups = new() {
+    private static readonly Dictionary<CharacterAfflictions.STATUSTYPE, string[]> KeyWords = new() {
         { CharacterAfflictions.STATUSTYPE.Injury, ["damage", "hurt", "injury", "injured", "pain", "harm", "wound", "hit", "bleed", "bruise", "cut", "slash", "slashed"] },
         { CharacterAfflictions.STATUSTYPE.Hunger, ["hunger", "hungry", "starving", "starve", "food", "malnourishment", "famished"] },
         { CharacterAfflictions.STATUSTYPE.Cold,   ["freezing", "cold", "blizzard", "shiver", "ice", "frozen", "chill", "frigid", "winter"] },
@@ -15,7 +15,7 @@ public class AfflictionEvent(Config config) : VoiceEventBase(config) {
     };
     
     private readonly Dictionary<string, CharacterAfflictions.STATUSTYPE> _wordToType = 
-        WordGroups.SelectMany(g => g.Value
+        KeyWords.SelectMany(g => g.Value
             .Select(w => (Word: w, Type: g.Key)))
             .ToDictionary(x => x.Word, x => x.Type);
 
