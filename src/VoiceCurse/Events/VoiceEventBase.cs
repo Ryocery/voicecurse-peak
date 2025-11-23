@@ -11,8 +11,8 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
     private float _lastExecutionTime = -999f;
     private static float Cooldown => 2.0f;
 
+    protected string? ExecutionDetail { get; set; }
     protected abstract IEnumerable<string> GetKeywords();
-
     protected abstract bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword);
 
     public bool TryExecute(string spokenWord, string fullSentence) {
@@ -25,7 +25,7 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
         if (!localChar || !localChar.gameObject.activeInHierarchy) return false;
         
         _lastExecutionTime = Time.time;
-        
+        ExecutionDetail = null;
         bool success = false;
         
         try {
@@ -41,7 +41,12 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
         if (Config.EnableDebugLogs.Value) {
             Debug.Log($"[VoiceCurse] {GetType().Name} executed locally. Broadcasting event...");
         }
+        
         string eventName = GetType().Name.Replace("Event", "");
+        if (!string.IsNullOrEmpty(ExecutionDetail)) {
+            eventName += $" ({ExecutionDetail})";
+        }
+
         NetworkHandler.SendCurseEvent(spokenWord, matchedKeyword, eventName, localChar.Center);
 
         return success;

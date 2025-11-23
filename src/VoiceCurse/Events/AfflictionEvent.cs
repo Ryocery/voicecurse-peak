@@ -25,6 +25,8 @@ public class AfflictionEvent(Config config) : VoiceEventBase(config) {
         if (player.refs?.afflictions is null) return false;
         if (player.data.dead || player.data.fullyPassedOut) return false;
         if (!_wordToType.TryGetValue(matchedKeyword, out CharacterAfflictions.STATUSTYPE statusType)) return false;
+        
+        ExecutionDetail = statusType.ToString();
     
         if (statusType is CharacterAfflictions.STATUSTYPE.Hot or CharacterAfflictions.STATUSTYPE.Cold) {
             HandleTemperatureExchange(player, statusType);
