@@ -6,7 +6,7 @@ public class SleepEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = [
         "faint", "sleep", "exhausted", "sleepy", "tired", "bed", 
         "nap", "rest", "slumber", "doze", "snooze", "pass out", 
-        "knockout", "blackout", "coma", "narc"
+        "knockout", "blackout", "coma", "narc", "drowsy"
     ];
     
     protected override IEnumerable<string> GetKeywords() => _keywords;

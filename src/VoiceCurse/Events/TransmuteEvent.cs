@@ -11,7 +11,7 @@ public class TransmuteEvent(Config config) : VoiceEventBase(config) {
         ("Milk",     ["milk", "calcium"], ["Fortified Milk"]),
         ("Cactus",   ["cactus", "cacti"], ["Cactus"]),
         ("Coconut",  ["coconut"], ["Coconut"]),
-        ("Apple",    ["apple"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry"]),
+        ("Apple",    ["apple", "berry"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry"]),
         ("Banana",   ["banana"], ["Berrynana Peel Yellow"]),
         ("Egg",      ["egg"], ["Egg"]),
         ("Fruit",    ["fruit"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry", "Kingberry Purple", "Kingberry Yellow", "Kingberry Green", "Berrynana Brown", "Berrynana Yellow", "Berrynana Pink", "Berrynana Blue"]),
