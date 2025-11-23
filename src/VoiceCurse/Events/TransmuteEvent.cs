@@ -7,41 +7,42 @@ using Photon.Pun;
 namespace VoiceCurse.Events;
 
 public class TransmuteEvent(Config config) : VoiceEventBase(config) {
-    private static readonly List<(string[] Triggers, string[] Targets)> TransmuteDefinitions = [
-        ( ["milk", "calcium"], ["Fortified Milk"] ),
-        ( ["cactus", "cacti"], ["Cactus"] ),
-        ( ["coconut"], ["Coconut"] ),
-        ( ["apple"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry"] ),
-        ( ["banana"], ["Berrynana Peel Yellow"] ),
-        ( ["egg"], ["Egg"] ),
-        ( ["fruit"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry", "Kingberry Purple", "Kingberry Yellow", "Kingberry Green", "Berrynana Brown", "Berrynana Yellow", "Berrynana Pink", "Berrynana Blue" ] ),
-        ( ["fungus", "mushroom", "fungi", "funghi", "shroom"], ["Mushroom Normie", "Mushroom Normie Poison"] )
+    private static readonly List<(string Name, string[] Triggers, string[] Targets)> TransmuteDefinitions = [
+        ("Milk",     ["milk", "calcium"], ["Fortified Milk"]),
+        ("Cactus",   ["cactus", "cacti"], ["Cactus"]),
+        ("Coconut",  ["coconut"], ["Coconut"]),
+        ("Apple",    ["apple"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry"]),
+        ("Banana",   ["banana"], ["Berrynana Peel Yellow"]),
+        ("Egg",      ["egg"], ["Egg"]),
+        ("Fruit",    ["fruit"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry", "Kingberry Purple", "Kingberry Yellow", "Kingberry Green", "Berrynana Brown", "Berrynana Yellow", "Berrynana Pink", "Berrynana Blue"]),
+        ("Mushroom", ["fungus", "mushroom", "fungi", "funghi", "shroom"], ["Mushroom Normie", "Mushroom Normie Poison"])
     ];
-
-    private readonly Dictionary<string, string[]> _keywordToTargets = 
+    
+    private readonly Dictionary<string, (string Name, string[] Targets)> _transmuteLookup = 
         TransmuteDefinitions
-            .SelectMany(def => def.Triggers.Select(trigger => (Trigger: trigger, def.Targets)))
-            .ToDictionary(x => x.Trigger, x => x.Targets);
+            .SelectMany(def => def.Triggers.Select(trigger => (Trigger: trigger, Data: (def.Name, def.Targets))))
+            .ToDictionary(x => x.Trigger, x => x.Data);
 
     private readonly Dictionary<string, Item?> _itemCache = new();
     private static readonly Regex NameCleaner = new(@"\s*\((\d+|Clone)\)", RegexOptions.Compiled);
 
-    protected override IEnumerable<string> GetKeywords() => _keywordToTargets.Keys;
+    protected override IEnumerable<string> GetKeywords() => _transmuteLookup.Keys;
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
         if (player.data.dead) return false;
         
-        string[]? targetItemNames = null;
-        if (_keywordToTargets.TryGetValue(matchedKeyword, out string[]? targets)) {
-            targetItemNames = targets;
+        (string Name, string[] Targets)? match = null;
+        
+        if (_transmuteLookup.TryGetValue(matchedKeyword, out (string Name, string[] Targets) foundData)) {
+            match = foundData;
         } else {
-            string? key = _keywordToTargets.Keys.FirstOrDefault(fullSentence.Contains);
-            if (key != null) targetItemNames = _keywordToTargets[key];
+            string? key = _transmuteLookup.Keys.FirstOrDefault(fullSentence.Contains);
+            if (key != null) match = _transmuteLookup[key];
         }
 
-        if (targetItemNames == null || targetItemNames.Length == 0) return false;
-        
-        TransmuteInventory(player, targetItemNames);
+        if (match == null) return false;
+        ExecutionDetail = match.Value.Name;
+        TransmuteInventory(player, match.Value.Targets);
             
         player.photonView.RPC("RPCA_Die", RpcTarget.All, player.Center);
         return true;
