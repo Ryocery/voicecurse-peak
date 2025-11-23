@@ -8,7 +8,7 @@ repository = "https://thunderstore.io"
 namespace = "Ryocery"
 name = "VoiceCurse"
 description = "TODO: Fill in short mod description."
-websiteUrl = "" # TODO: Add a link to your mod repository here (optional)
+websiteUrl = "https://github.com/Ryocery/voicecurse-peak"
 containsNsfwContent = false
 
 [package.dependencies]
