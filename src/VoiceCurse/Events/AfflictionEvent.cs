@@ -5,7 +5,7 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
-public class AfflictionEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
+public class AfflictionEvent(Config config) : VoiceEventBase(config) {
     private static readonly Dictionary<CharacterAfflictions.STATUSTYPE, string[]> WordGroups = new() {
         { CharacterAfflictions.STATUSTYPE.Injury, ["damage", "hurt", "injury", "injured", "pain", "harm", "wound", "hit", "bleed", "bruise", "cut", "slash", "slashed"] },
         { CharacterAfflictions.STATUSTYPE.Hunger, ["hunger", "hungry", "starving", "starve", "food", "malnourishment", "famished"] },

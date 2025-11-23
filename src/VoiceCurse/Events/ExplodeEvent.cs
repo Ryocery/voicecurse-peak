@@ -5,7 +5,7 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
-public class ExplodeEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
+public class ExplodeEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = [
         "explosion", "dynamite", "grenade", "explodes", "explode", 
         "blowing", "blew", "blow", "boom", "nuke", "bomb", "bombs", 

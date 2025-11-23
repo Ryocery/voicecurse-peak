@@ -6,8 +6,8 @@ using VoiceCurse.Networking;
 
 namespace VoiceCurse.Events;
 
-public abstract class VoiceEventBase(VoiceCurseConfig config) : IVoiceEvent {
-    protected readonly VoiceCurseConfig Config = config;
+public abstract class VoiceEventBase(Config config) : IVoiceEvent {
+    protected readonly Config Config = config;
     private float _lastExecutionTime = -999f;
     protected virtual float Cooldown => 2.0f;
 
@@ -42,7 +42,7 @@ public abstract class VoiceEventBase(VoiceCurseConfig config) : IVoiceEvent {
             Debug.Log($"[VoiceCurse] {GetType().Name} executed locally. Broadcasting event...");
         }
         string eventName = GetType().Name.Replace("Event", "");
-        VoiceCurseNetworker.SendCurseEvent(spokenWord, matchedKeyword, eventName, localChar.Center);
+        Networker.SendCurseEvent(spokenWord, matchedKeyword, eventName, localChar.Center);
 
         return success;
     }

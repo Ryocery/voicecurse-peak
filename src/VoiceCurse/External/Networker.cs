@@ -10,7 +10,7 @@ using VoiceCurse.Events;
 
 namespace VoiceCurse.Networking;
 
-public class VoiceCurseNetworker : IOnEventCallback {
+public class Networker : IOnEventCallback {
     private const byte VoiceCurseEventCode = 187; 
     private static MonoBehaviour? _connectionLog;
     private static MethodInfo? _addMessageMethod;

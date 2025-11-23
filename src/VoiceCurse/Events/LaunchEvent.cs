@@ -5,7 +5,7 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
-public class LaunchEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
+public class LaunchEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = [
         "launch", "fly", "blast", "boost", "ascend", "lift", "up", 
         "cannon", "canon", "rocket", "soar", "jump", "spring", "catapult",

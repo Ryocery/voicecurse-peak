@@ -6,7 +6,7 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
-public class DeathEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
+public class DeathEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _deathKeywords = [
         "die", "death", "dead", "suicide", "kill", "deceased", "skeleton", 
         "skull", "bones", "bone", "perish", "demise", "expire", "expired", 

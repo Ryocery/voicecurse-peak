@@ -5,7 +5,7 @@ using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
-public class DropEvent(VoiceCurseConfig config) : VoiceEventBase(config) {
+public class DropEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = [
         "drop", "oops", "whoops", "butterfingers", "fumble", "slip", 
         "release", "discard", "yeet", "off"

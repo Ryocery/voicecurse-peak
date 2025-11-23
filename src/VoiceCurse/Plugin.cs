@@ -24,10 +24,10 @@ public partial class Plugin : BaseUnityPlugin {
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern bool SetDllDirectory(string lpPathName);
 
-    private VoiceCurseConfig? _config;
+    private Config? _config;
     private IVoiceRecognizer? _recognizer;
     private VoiceEventHandler? _eventHandler;
-    private VoiceCurseNetworker? _networker;
+    private Networker? _networker;
     private Model? _voskModel;
     
     private int _currentSampleRate;
@@ -46,12 +46,12 @@ public partial class Plugin : BaseUnityPlugin {
             SetDllDirectory(pluginDir);
         }
 
-        _config = new VoiceCurseConfig(Config);
+        _config = new Config(Config);
         if (_config != null) {
             _eventHandler = new VoiceEventHandler(_config);
         }
 
-        _networker = new VoiceCurseNetworker();
+        _networker = new Networker();
         PhotonNetwork.AddCallbackTarget(_networker);
 
         string modelPath = Path.Combine(Paths.PluginPath, "VoiceCurse", "model-en-us");
