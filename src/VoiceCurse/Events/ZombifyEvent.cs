@@ -3,7 +3,7 @@ using Photon.Pun;
 
 namespace VoiceCurse.Events;
 
-public class ZombieEvent(Config config) : VoiceEventBase(config) {
+public class ZombifyEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _deathKeywords = [
         "zombie", "undead", "walker", "ghoul", "bitten", "bite",
         "brain", "rot", "decay", "corpse", "zombify", "zombified",
