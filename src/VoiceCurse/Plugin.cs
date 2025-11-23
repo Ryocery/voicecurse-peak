@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using BepInEx;
 using BepInEx.Logging;
-using VoiceCurse.Core;
+using VoiceCurse.Handlers;
 
 namespace VoiceCurse;
 

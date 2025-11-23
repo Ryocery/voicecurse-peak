@@ -4,12 +4,11 @@ using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
-using VoiceCurse.Core;
 using VoiceCurse.Interfaces;
 
-namespace VoiceCurse.External;
+namespace VoiceCurse.Handlers;
 
-public class EventNetworker : IOnEventCallback {
+public class NetworkHandler : IOnEventCallback {
     private const byte VoiceCurseEventCode = 187; 
     private static MonoBehaviour? _connectionLog;
     private static MethodInfo? _addMessageMethod;

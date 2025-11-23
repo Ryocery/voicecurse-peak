@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using VoiceCurse.Events;
 using VoiceCurse.Interfaces;
 
-namespace VoiceCurse.Core;
+namespace VoiceCurse.Handlers;
 
 public class EventHandler {
     public static readonly Dictionary<string, IVoiceEvent> Events = new();

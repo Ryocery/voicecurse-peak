@@ -5,7 +5,7 @@ using UnityEngine;
 using VoiceCurse.Interfaces;
 using Vosk;
 
-namespace VoiceCurse.Core;
+namespace VoiceCurse.Voice;
 
 public class VoiceRecognizer : IVoiceRecognizer {
     private readonly VoskRecognizer _recognizer;

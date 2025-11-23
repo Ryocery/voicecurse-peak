@@ -1,7 +1,7 @@
 using Photon.Voice;
 using VoiceCurse.Interfaces;
 
-namespace VoiceCurse.External;
+namespace VoiceCurse.Voice;
 
 public class VoiceProcessor(IVoiceRecognizer recognizer) : IProcessor<float> {
     public float[]? Process(float[]? buf) {

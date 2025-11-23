@@ -9,11 +9,11 @@ using Photon.Voice;
 using Photon.Voice.PUN;
 using Photon.Voice.Unity;
 using UnityEngine;
-using VoiceCurse.External;
 using VoiceCurse.Interfaces;
+using VoiceCurse.Voice;
 using Vosk;
 
-namespace VoiceCurse.Core;
+namespace VoiceCurse.Handlers;
 
 public class VoiceCurseManager : IDisposable {
     private readonly ManualLogSource _log;
@@ -24,7 +24,7 @@ public class VoiceCurseManager : IDisposable {
 
     private IVoiceRecognizer? _recognizer;
     private EventHandler? _eventHandler;
-    private EventNetworker? _networker;
+    private NetworkHandler? _networker;
     private Model? _voskModel;
     
     private int _currentSampleRate;
@@ -49,7 +49,7 @@ public class VoiceCurseManager : IDisposable {
         }
 
         _eventHandler = new EventHandler(_config);
-        _networker = new EventNetworker();
+        _networker = new NetworkHandler();
         PhotonNetwork.AddCallbackTarget(_networker);
         
         string modelPath = Path.Combine(Paths.PluginPath, "VoiceCurse", "model-en-us");

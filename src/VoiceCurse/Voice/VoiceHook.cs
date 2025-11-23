@@ -2,8 +2,9 @@ using System.Reflection;
 using Photon.Voice;
 using Photon.Voice.Unity;
 using UnityEngine;
+using VoiceCurse.Handlers;
 
-namespace VoiceCurse.Core;
+namespace VoiceCurse.Voice;
 
 public class VoiceHook : MonoBehaviour {
     private VoiceCurseManager? _manager;

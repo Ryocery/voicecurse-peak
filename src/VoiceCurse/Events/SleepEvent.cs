@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 

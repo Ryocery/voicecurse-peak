@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
-using VoiceCurse.Core;
 
 namespace VoiceCurse.Events;
 
