@@ -7,7 +7,7 @@ using Vosk;
 
 namespace VoiceCurse.Voice;
 
-public class VoskVoiceRecognizer : IVoiceRecognizer {
+public class VoiceRecognizer : IVoiceRecognizer {
     private readonly VoskRecognizer _recognizer;
     private readonly ConcurrentQueue<short[]> _audioQueue = new();
     private Thread? _workerThread;
@@ -16,7 +16,7 @@ public class VoskVoiceRecognizer : IVoiceRecognizer {
     public event Action<string>? OnPhraseRecognized;
     public event Action<string>? OnPartialResult;
     
-    public VoskVoiceRecognizer(Model model, float sampleRate) {
+    public VoiceRecognizer(Model model, float sampleRate) {
         try {
             _recognizer = new VoskRecognizer(model, sampleRate);
             _recognizer.SetMaxAlternatives(0);
