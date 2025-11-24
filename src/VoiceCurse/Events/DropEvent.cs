@@ -16,7 +16,6 @@ public class DropEvent(Config config) : VoiceEventBase(config) {
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
         if (player.data.dead) return false;
-        
         string? backpackPrefab = ScatterBackpackContents(player);
         
         if (!string.IsNullOrEmpty(backpackPrefab)) {
@@ -29,13 +28,11 @@ public class DropEvent(Config config) : VoiceEventBase(config) {
             );
             
             if (myBag.TryGetComponent(out PhotonView pv)) {
-                pv.RPC("SetItemInstanceDataRPC", RpcTarget.All, player.player.backpackSlot.data);
                 pv.RPC("SetKinematicRPC", RpcTarget.All, false, dropPos, Quaternion.identity);
             }
         }
         
         player.refs.items.DropAllItems(includeBackpack: false);
-        
         if (!player.player.GetItemSlot(3).IsEmpty()) {
             player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, (byte)3, new Vector3(0, -5000, 0));
         }
