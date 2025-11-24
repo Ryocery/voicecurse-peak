@@ -16,14 +16,12 @@ public class DropEvent(Config config) : VoiceEventBase(config) {
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
         if (player.data.dead) return false;
-
         string? backpackPrefab = ScatterBackpackContents(player);
-
+        
         if (!player.player.GetItemSlot(3).IsEmpty()) {
-            player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.MasterClient, (byte)3, new Vector3(0, -5000, 0));
+            player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, (byte)3, new Vector3(0, -5000, 0));
         }
-
-        player.player.GetItemSlot(3).EmptyOut();
+        
         player.refs.items.DropAllItems(includeBackpack: false);
 
         if (string.IsNullOrEmpty(backpackPrefab)) return true;
