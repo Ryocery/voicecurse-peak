@@ -43,7 +43,7 @@ public class LaunchEvent(Config config) : VoiceEventBase(config) {
         };
 
         launchDirection.Normalize();
-        float launchForce = Random.Range(1500f, 3000f) * Config.LaunchForceMultiplier.Value; 
+        float launchForce = Random.Range(Config.LaunchForceLowerBound.Value, Config.LaunchForceHigherBound.Value);
         Vector3 finalForce = launchDirection * launchForce;
         player.AddForce(finalForce);
 

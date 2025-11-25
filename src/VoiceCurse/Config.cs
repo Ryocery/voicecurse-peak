@@ -10,8 +10,9 @@ public class Config {
     // Launch
     public ConfigEntry<bool> LaunchEnabled { get; private set; }
     public ConfigEntry<string> LaunchKeywords { get; private set; }
-    public ConfigEntry<float> LaunchForceMultiplier { get; private set; }
     public ConfigEntry<float> LaunchStunDuration { get; private set; }
+    public ConfigEntry<float> LaunchForceLowerBound { get; private set; }
+    public ConfigEntry<float> LaunchForceHigherBound { get; private set; }
 
     // TODO: Move these to AfflictionEvent specific config later
     // Keeping them here temporarily to prevent compilation errors in AfflictionEvent.cs
@@ -28,7 +29,9 @@ public class Config {
         LaunchKeywords = configFile.Bind("Event.Launch", "Keywords", 
             "launch, fly, blast, boost, ascend, lift, up, cannon, canon, rocket, soar, jump, spring, catapult, fling, hurl, propel, shoot, skyrocket, takeoff, left, right, forward, forwards, backward, backwards, back, yeet, lob, pitch, toss, chuck, heave, airborne, levitate, hover, elevate, rise, vault, leap, bound, hop, eject, thrust, projectile, missile, space, orbit", 
             "List of keywords that trigger the launch event, separated by commas.");
-        LaunchForceMultiplier = configFile.Bind("Event.Launch", "ForceMultiplier", 1.0f, "Multiplier applied to the launch force.");
+        LaunchForceLowerBound = configFile.Bind("Event.Launch", "ForceLowerBound", 1500f, "Lowest possible amount of force applied to the player upon launching..");
+        LaunchForceHigherBound = configFile.Bind("Event.Launch", "ForceHigherBound", 3000f, "Highest possible amount of force applied to the player upon launching..");
+        
         LaunchStunDuration = configFile.Bind("Event.Launch", "StunDuration", 3.0f, "Duration in seconds the player will be stunned/ragdolled after launching.");
 
         // Legacy / Temporary
