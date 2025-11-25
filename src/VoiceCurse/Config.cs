@@ -65,6 +65,11 @@ public class Config {
     public ConfigEntry<float> ExplodeStunDuration { get; private set; }
     public ConfigEntry<float> ExplodeForceLowerBound { get; private set; }
     public ConfigEntry<float> ExplodeForceHigherBound { get; private set; }
+    
+    // Event: Slip
+    public ConfigEntry<bool> SlipEnabled { get; private set; }
+    public ConfigEntry<string> SlipKeywords { get; private set; }
+    public ConfigEntry<float> SlipStunDuration { get; private set; }
 
     public Config(ConfigFile configFile) {
         // Global
@@ -127,5 +132,10 @@ public class Config {
         ExplodeStunDuration = configFile.Bind("Event.Explode", "StunDuration", 3.0f, "Duration in seconds the player will be stunned/ragdolled after explosion.");
         ExplodeForceLowerBound = configFile.Bind("Event.Explode", "ForceLowerBound", 2000f, "Lowest possible amount of explosion force applied.");
         ExplodeForceHigherBound = configFile.Bind("Event.Explode", "ForceHigherBound", 3000f, "Highest possible amount of explosion force applied.");
+        
+        // Event: Slip
+        SlipEnabled = configFile.Bind("Event.Slip", "Enabled", true, "Enable the Slip event.");
+        SlipKeywords = configFile.Bind("Event.Slip", "Keywords", "fuck, asshole, bastard, bitch, fag, damn, crap, slip, slide, trip, fall, fell, stumble, tumble, topple, stagger, wobble, skid, slippery, slick, peel, unbalanced, unstable, tilting, tilt", "List of keywords that trigger the slip event, separated by commas.");
+        SlipStunDuration = configFile.Bind("Event.Slip", "StunDuration", 2.0f, "Duration in seconds the player will be stunned/ragdolled after slipping.");
     }
 }

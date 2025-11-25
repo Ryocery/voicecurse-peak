@@ -1,24 +1,33 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+
 namespace VoiceCurse.Events;
 
 public class SlipEvent(Config config) : VoiceEventBase(config) {
-    private readonly HashSet<string> _keywords = [
-        "fuck", "asshole", "bastard", "bitch", "fag", "damn", 
-        "crap", "slip", "slide", "trip", "fall", "fell",
-        "stumble", "tumble", "topple", "stagger", "wobble",
-        "skid", "slippery", "slick", "peel",
-        "unbalanced", "unstable", "tilting", "tilt"
-    ];
-
+    private readonly HashSet<string> _keywords = ParseKeywords(config.SlipKeywords.Value);
     private static AudioClip? _cachedTripSound;
-    protected override IEnumerable<string> GetKeywords() => _keywords;
+
+    private static HashSet<string> ParseKeywords(string configLine) {
+        return configLine
+            .Split([','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(k => k.Trim().ToLowerInvariant())
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .ToHashSet();
+    }
+
+    protected override IEnumerable<string> GetKeywords() {
+        return Config.SlipEnabled.Value ? _keywords : Enumerable.Empty<string>();
+    }
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
+        if (!Config.SlipEnabled.Value) return false;
         if (player.data.dead || player.data.fullyPassedOut) return false;
         
-        player.Fall(2f); 
+        // Use configured stun duration
+        player.Fall(Config.SlipStunDuration.Value); 
+        
         Vector3 lookDir = player.data.lookDirection_Flat;
         ApplyForceToPart(player, BodypartType.Foot_R, (lookDir + Vector3.up) * 200f);
         ApplyForceToPart(player, BodypartType.Foot_L, (lookDir + Vector3.up) * 200f);
