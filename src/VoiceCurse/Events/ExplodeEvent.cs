@@ -1,24 +1,31 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace VoiceCurse.Events;
 
 public class ExplodeEvent(Config config) : VoiceEventBase(config) {
-    private readonly HashSet<string> _keywords = [
-        "explosion", "dynamite", "grenade", "explodes", "explode", 
-        "blowing", "blew", "blow", "boom", "nuke", "bomb", "bombs", 
-        "nuclear", "detonate", "detonation", "explosive", "blast",
-        "kaboom", "burst"
-    ];
-        
+    private readonly HashSet<string> _keywords = ParseKeywords(config.ExplodeKeywords.Value);
     private static GameObject? _cachedExplosionPrefab;
-    private const float ExplosionRadius = 6.0f; 
-    protected override IEnumerable<string> GetKeywords() => _keywords;
+
+    private static HashSet<string> ParseKeywords(string configLine) {
+        return configLine
+            .Split([','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(k => k.Trim().ToLowerInvariant())
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .ToHashSet();
+    }
+        
+    protected override IEnumerable<string> GetKeywords() {
+        return Config.ExplodeEnabled.Value ? _keywords : Enumerable.Empty<string>();
+    }
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
-        if (player.data.dead) return false;
-        return true;
+        if (!Config.ExplodeEnabled.Value) return false;
+        return !player.data.dead;
     }
     
     public override void PlayEffects(Vector3 position) {
@@ -32,17 +39,19 @@ public class ExplodeEvent(Config config) : VoiceEventBase(config) {
 
         if (!local || local.data.dead) return;
         float distance = Vector3.Distance(local.Center, position);
-
-        if (!(distance <= ExplosionRadius)) return;
+        if (!(distance <= Config.ExplodeRadius.Value)) return;
+        
         if (local.refs.afflictions) {
-            local.refs.afflictions.AddStatus(CharacterAfflictions.STATUSTYPE.Injury, 0.4f);
+            local.refs.afflictions.AddStatus(CharacterAfflictions.STATUSTYPE.Injury, Config.ExplodeDamage.Value);
         }
 
-        local.Fall(3f); 
+        local.Fall(Config.ExplodeStunDuration.Value); 
+        
         Vector3 launchDirection = (local.Center - position).normalized;
         launchDirection += Vector3.up * 0.6f;
         launchDirection.Normalize();
-        float launchForce = Random.Range(2000f, 3000f); 
+        
+        float launchForce = Random.Range(Config.ExplodeForceLowerBound.Value, Config.ExplodeForceHigherBound.Value); 
         local.AddForce(launchDirection * launchForce);
     }
 

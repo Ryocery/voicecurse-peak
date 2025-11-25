@@ -1,21 +1,29 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Photon.Pun;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace VoiceCurse.Events;
 
 public class DropEvent(Config config) : VoiceEventBase(config) {
-    private readonly HashSet<string> _keywords = [
-        "drop", "oops", "whoops", "butterfingers", "fumble", 
-        "release", "discard", "off", "loss", "lose", "let go",
-        "slip away", "misplace", "clumsy", "accident", "unhand",
-        "relinquish", "surrender", "abandon", "ditched", "ditch",
-        "shed", "cast", "toss", "throw away", "get rid"
-    ];
-    protected override IEnumerable<string> GetKeywords() => _keywords;
+    private readonly HashSet<string> _keywords = ParseKeywords(config.DropKeywords.Value);
+
+    private static HashSet<string> ParseKeywords(string configLine) {
+        return configLine
+            .Split([','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(k => k.Trim().ToLowerInvariant())
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .ToHashSet();
+    }
+    
+    protected override IEnumerable<string> GetKeywords() {
+        return Config.DropEnabled.Value ? _keywords : Enumerable.Empty<string>();
+    }
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
-        return !player.data.dead;
+        return Config.DropEnabled.Value && !player.data.dead;
     }
 
     public override void PlayEffects(Character origin, Vector3 position) {

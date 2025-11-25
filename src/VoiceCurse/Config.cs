@@ -52,6 +52,19 @@ public class Config {
     // Event: Sleep
     public ConfigEntry<bool> SleepEnabled { get; private set; }
     public ConfigEntry<string> SleepKeywords { get; private set; }
+    
+    // Event: Drop
+    public ConfigEntry<bool> DropEnabled { get; private set; }
+    public ConfigEntry<string> DropKeywords { get; private set; }
+
+    // Event: Explode
+    public ConfigEntry<bool> ExplodeEnabled { get; private set; }
+    public ConfigEntry<string> ExplodeKeywords { get; private set; }
+    public ConfigEntry<float> ExplodeRadius { get; private set; }
+    public ConfigEntry<float> ExplodeDamage { get; private set; }
+    public ConfigEntry<float> ExplodeStunDuration { get; private set; }
+    public ConfigEntry<float> ExplodeForceLowerBound { get; private set; }
+    public ConfigEntry<float> ExplodeForceHigherBound { get; private set; }
 
     public Config(ConfigFile configFile) {
         // Global
@@ -101,5 +114,18 @@ public class Config {
         // Event: Sleep
         SleepEnabled = configFile.Bind("Event.Sleep", "Enabled", true, "Enable the Sleep event.");
         SleepKeywords = configFile.Bind("Event.Sleep", "Keywords", "faint, sleep, exhausted, sleepy, tired, bed, nap, rest, slumber, doze, snooze, pass out, knockout, blackout, coma, narc, drowsy, unconscious, collapse, zonk, conk, yawn, fatigue, fatigued, weary, lethargic, sluggish, drained, wiped, beat, worn, spent, shut-eye, shuteye, siesta, catnap, dreamland, nodding off, drift off, lights out, out cold", "List of keywords that trigger the sleep event, separated by commas.");
+        
+        // Event: Drop
+        DropEnabled = configFile.Bind("Event.Drop", "Enabled", true, "Enable the Drop event.");
+        DropKeywords = configFile.Bind("Event.Drop", "Keywords", "drop, oops, whoops, butterfingers, fumble, release, discard, off, loss, lose, let go, slip away, misplace, clumsy, accident, unhand, relinquish, surrender, abandon, ditched, ditch, shed, cast, toss, throw away, get rid", "List of keywords that trigger the drop event, separated by commas.");
+
+        // Event: Explode
+        ExplodeEnabled = configFile.Bind("Event.Explode", "Enabled", true, "Enable the Explode event.");
+        ExplodeKeywords = configFile.Bind("Event.Explode", "Keywords", "explosion, dynamite, grenade, explodes, explode, blowing, blew, blow, boom, nuke, bomb, bombs, nuclear, detonate, detonation, explosive, blast, kaboom, burst", "List of keywords that trigger the explode event, separated by commas.");
+        ExplodeRadius = configFile.Bind("Event.Explode", "Radius", 6.0f, "The radius of the explosion effect and damage.");
+        ExplodeDamage = configFile.Bind("Event.Explode", "DamagePercent", 0.4f, "The percentage of injury (0.0 to 1.0) applied to the player.");
+        ExplodeStunDuration = configFile.Bind("Event.Explode", "StunDuration", 3.0f, "Duration in seconds the player will be stunned/ragdolled after explosion.");
+        ExplodeForceLowerBound = configFile.Bind("Event.Explode", "ForceLowerBound", 2000f, "Lowest possible amount of explosion force applied.");
+        ExplodeForceHigherBound = configFile.Bind("Event.Explode", "ForceHigherBound", 3000f, "Highest possible amount of explosion force applied.");
     }
 }
