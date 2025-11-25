@@ -1,31 +1,35 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace VoiceCurse.Events;
 
 public class LaunchEvent(Config config) : VoiceEventBase(config) {
-    private readonly HashSet<string> _keywords = [
-        "launch", "fly", "blast", "boost", "ascend", "lift", "up", 
-        "cannon", "canon", "rocket", "soar", "jump", "spring", "catapult",
-        "fling", "hurl", "propel", "shoot", "skyrocket", "takeoff",
-        "left", "right", "forward", "forwards", "backward", "backwards", "back",
-        "yeet", "lob", "pitch", "toss", "chuck", "heave",
-        "airborne", "levitate", "hover", "elevate", "rise",
-        "vault", "leap", "bound", "hop", "eject",
-        "thrust", "projectile", "missile", "space", "orbit"
-    ];
-
-    
+    private readonly HashSet<string> _keywords = ParseKeywords(config.LaunchKeywords.Value);
     private static GameObject? _cachedLaunchSFX;
 
-    protected override IEnumerable<string> GetKeywords() => _keywords;
+    private static HashSet<string> ParseKeywords(string configLine) {
+        return configLine
+            .Split([','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(k => k.Trim().ToLowerInvariant())
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .ToHashSet();
+    }
+
+    protected override IEnumerable<string> GetKeywords() {
+        return Config.LaunchEnabled.Value ? _keywords : Enumerable.Empty<string>();
+    }
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
+        if (!Config.LaunchEnabled.Value) return false;
         if (player.data.dead || player.data.fullyPassedOut) return false;
-        if (_cachedLaunchSFX is null) FindLaunchSFX();
         
-        player.Fall(3f);
+        if (_cachedLaunchSFX is null) FindLaunchSFX();
+        player.Fall(Config.LaunchStunDuration.Value);
+        
         Vector3 forwardDir = player.data.lookDirection_Flat.normalized;
         Vector3 rightDir = Vector3.Cross(Vector3.up, forwardDir);
 
@@ -39,7 +43,7 @@ public class LaunchEvent(Config config) : VoiceEventBase(config) {
         };
 
         launchDirection.Normalize();
-        float launchForce = Random.Range(1500f, 3000f); 
+        float launchForce = Random.Range(1500f, 3000f) * Config.LaunchForceMultiplier.Value; 
         Vector3 finalForce = launchDirection * launchForce;
         player.AddForce(finalForce);
 

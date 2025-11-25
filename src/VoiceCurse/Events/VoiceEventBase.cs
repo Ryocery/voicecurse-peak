@@ -9,7 +9,8 @@ namespace VoiceCurse.Events;
 public abstract class VoiceEventBase(Config config) : IVoiceEvent {
     protected readonly Config Config = config;
     private float _lastExecutionTime = -999f;
-    private static float Cooldown => 2.0f;
+
+    private float Cooldown => Config.GlobalCooldown.Value;
 
     protected string? ExecutionDetail { get; set; }
     protected abstract IEnumerable<string> GetKeywords();
@@ -27,11 +28,8 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
         
         Character localChar = Character.localCharacter;
         if (!localChar || !localChar.gameObject.activeInHierarchy) return false;
-        
-        _lastExecutionTime = Time.time;
-        ExecutionDetail = null;
+
         bool success = false;
-        
         try {
             success = OnExecute(localChar, spokenWord, fullSentence, matchedKeyword);
         } catch (System.Exception e) {
@@ -40,14 +38,16 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
             }
         }
 
-        if (!success) return success;
+        if (!success) return false;
+        
+        _lastExecutionTime = Time.time;
+        ExecutionDetail = null;
         
         if (Config.EnableDebugLogs.Value) {
             Debug.Log($"[VoiceCurse] {GetType().Name} executed locally. Broadcasting event...");
         }
         
         string eventName = GetType().Name.Replace("Event", "");
-
         string textToSend = fullSentence;
         int matchIndex = fullSentence.LastIndexOf(matchedKeyword, System.StringComparison.OrdinalIgnoreCase);
 
@@ -68,7 +68,7 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
         
         NetworkHandler.SendCurseEvent(textToSend, matchedKeyword, eventName, ExecutionDetail, localChar.Center);
 
-        return success;
+        return true;
     }
 
     public virtual void PlayEffects(Character origin, Vector3 position) {
