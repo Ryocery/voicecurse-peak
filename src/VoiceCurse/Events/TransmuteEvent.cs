@@ -64,10 +64,9 @@ public class TransmuteEvent : VoiceEventBase {
         }
 
         if (targets == null || targets.Length == 0) return false;
-        ExecutionDetail = ruleName; 
         
+        ExecutionDetail = ruleName; 
         TransmuteInventory(player, targets);
-            
         player.photonView.RPC("RPCA_Die", RpcTarget.All, player.Center);
         return true;
     }
