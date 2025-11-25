@@ -78,7 +78,7 @@ public class Config {
 
         // Event: Launch
         LaunchEnabled = configFile.Bind("Event.Launch", "Enabled", true, "Enable the Launch event.");
-        LaunchKeywords = configFile.Bind("Event.Launch", "Keywords", "launch, fly, blast, boost, ascend, lift, up, cannon, canon, rocket, soar, jump, spring, catapult, fling, hurl, propel, shoot, skyrocket, takeoff, left, right, forward, forwards, backward, backwards, back, yeet, lob, pitch, toss, chuck, heave, airborne, levitate, hover, elevate, rise, vault, leap, bound, hop, eject, thrust, projectile, missile, space, orbit", "List of keywords that trigger the launch event, separated by commas.");
+        LaunchKeywords = configFile.Bind("Event.Launch", "Keywords", "launch, fly, boost, ascend, lift, up, cannon, canon, rocket, soar, jump, spring, catapult, fling, hurl, propel, shoot, skyrocket, takeoff, left, right, forward, back, yeet, lob, pitch, chuck, heave, airborne, levitate, hover, elevate, rise, vault, leap, bound, hop, eject, thrust, projectile, missile, space, orbit", "List of keywords that trigger the launch event, separated by commas.");
         LaunchForceLowerBound = configFile.Bind("Event.Launch", "ForceLowerBound", 1500f, "Lowest possible amount of force applied to the player upon launching..");
         LaunchForceHigherBound = configFile.Bind("Event.Launch", "ForceHigherBound", 3000f, "Highest possible amount of force applied to the player upon launching..");
         LaunchStunDuration = configFile.Bind("Event.Launch", "StunDuration", 3.0f, "Duration in seconds the player will be stunned/ragdolled after launching.");
@@ -89,10 +89,10 @@ public class Config {
         AfflictionMaxPercent = configFile.Bind("Event.Affliction", "MaxPercent", 0.6f, "The maximum percentage (0.0 to 1.0) of the status bar to fill when triggered.");
         AfflictionTemperatureSwapEnabled = configFile.Bind("Event.Affliction", "TemperatureSwapEnabled", true, "If enabled, triggering Hot will cure Cold (and vice versa) instead of just adding status.");
         
-        AfflictionKeywordsInjury = configFile.Bind("Event.Affliction", "KeywordsInjury", "damage, hurt, injury, injured, pain, harm, wound, hit, bleed, bruise, cut, slash, slashed, orange, ache, sore, trauma, gash, scrape, laceration, tear, torn, broken, fracture, sprain, puncture, stab, maim, maimed, cripple, batter", "Keywords that trigger physical injury.");
+        AfflictionKeywordsInjury = configFile.Bind("Event.Affliction", "KeywordsInjury", "damage, hurt, injury, injured, pain, harm, wound, hit, bleed, bruise, cut, slash, orange, ache, sore, trauma, gash, scrape, laceration, tear, torn, broken, fracture, sprain, puncture, stab, maim, cripple, batter", "Keywords that trigger physical injury.");
         AfflictionKeywordsHunger = configFile.Bind("Event.Affliction", "KeywordsHunger", "hunger, hungry, starving, starve, food, malnourishment, famished, eat, snack, meal, yellow, appetite, crave, craving, ravenous, peckish, feast, feed, sustenance, nourishment, nutrition, consume", "Keywords that trigger hunger.");
         AfflictionKeywordsCold = configFile.Bind("Event.Affliction", "KeywordsCold", "freezing, cold, blizzard, shiver, ice, frozen, chill, frigid, winter, blue, frost, arctic, polar, glacier, icicle, hypothermia, numb, shivering, freeze", "Keywords that trigger cold status.");
-        AfflictionKeywordsHot = configFile.Bind("Event.Affliction", "KeywordsHot", "hot, burning, fire, melt, scorching, heat, burn, pyro, flame, summer, cook, hell, red, sizzle, sear, swelter, boil, roast, bake, baking, scald, inferno, blaze, blazing, ignite, combust, incinerate", "Keywords that trigger hot status.");
+        AfflictionKeywordsHot = configFile.Bind("Event.Affliction", "KeywordsHot", "hot, fire, melt, scorching, heat, burn, pyro, flame, summer, cook, hell, red, sizzle, sear, swelter, boil, roast, bake, baking, scald, inferno, blaze, blazing, ignite, combust, incinerate", "Keywords that trigger hot status.");
         AfflictionKeywordsPoison = configFile.Bind("Event.Affliction", "KeywordsPoison", "poison, sick, vomit, toxic, venom, contaminate, purple, nausea, nauseous, intoxicate, pollute, taint, corrupt, disease, ill, ailment, malady", "Keywords that trigger poison status.");
         AfflictionKeywordsSpores = configFile.Bind("Event.Affliction", "KeywordsSpores", "spore, pink", "Keywords that trigger spore status.");
 
@@ -114,7 +114,7 @@ public class Config {
 
         // Event: Zombify
         ZombifyEnabled = configFile.Bind("Event.Zombify", "Enabled", true, "Enable the Zombify event.");
-        ZombifyKeywords = configFile.Bind("Event.Zombify", "Keywords", "zombie, zombify, zombified, walker, ghoul, bitten, bite, brain, rot, decay, infected, infection, plague, pandemic, virus, outbreak, cannibal, flesh, meat, undead, risen, horde, apocalypse, reanimate, reanimated, lurker, creeper, crawler, groaning, groan, moan, moaning, growl, snarl", "List of keywords that trigger the zombify event, separated by commas.");
+        ZombifyKeywords = configFile.Bind("Event.Zombify", "Keywords", "zombie, zombify, zombified, walker, ghoul, bitten, bite, brain, rot, decay, infected, infection, plague, pandemic, virus, outbreak, cannibal, flesh, meat, undead, risen, horde, apocalypse, reanimate, lurker, creeper, crawler, groaning, groan, moan, growl, snarl", "List of keywords that trigger the zombify event, separated by commas.");
 
         // Event: Sleep
         SleepEnabled = configFile.Bind("Event.Sleep", "Enabled", true, "Enable the Sleep event.");
@@ -122,11 +122,11 @@ public class Config {
         
         // Event: Drop
         DropEnabled = configFile.Bind("Event.Drop", "Enabled", true, "Enable the Drop event.");
-        DropKeywords = configFile.Bind("Event.Drop", "Keywords", "drop, oops, whoops, butterfingers, fumble, release, discard, off, loss, lose, let go, slip away, misplace, clumsy, accident, unhand, relinquish, surrender, abandon, ditched, ditch, shed, cast, toss, throw away, get rid", "List of keywords that trigger the drop event, separated by commas.");
+        DropKeywords = configFile.Bind("Event.Drop", "Keywords", "drop, oops, whoops, butterfingers, fumble, release, discard, off, loss, lose, let go, slip away, misplace, clumsy, accident, unhand, relinquish, surrender, abandon, ditch, shed, cast, toss, throw away, get rid", "List of keywords that trigger the drop event, separated by commas.");
 
         // Event: Explode
         ExplodeEnabled = configFile.Bind("Event.Explode", "Enabled", true, "Enable the Explode event.");
-        ExplodeKeywords = configFile.Bind("Event.Explode", "Keywords", "explosion, dynamite, grenade, explodes, explode, blowing, blew, blow, boom, nuke, bomb, bombs, nuclear, detonate, detonation, explosive, blast, kaboom, burst", "List of keywords that trigger the explode event, separated by commas.");
+        ExplodeKeywords = configFile.Bind("Event.Explode", "Keywords", "explosion, dynamite, grenade, explode, blow, blast, boom, nuke, bomb, nuclear, detonate, detonation, explosive, kaboom, burst", "List of keywords that trigger the explode event, separated by commas.");
         ExplodeRadius = configFile.Bind("Event.Explode", "Radius", 6.0f, "The radius of the explosion effect and damage.");
         ExplodeDamage = configFile.Bind("Event.Explode", "DamagePercent", 0.4f, "The percentage of injury (0.0 to 1.0) applied to the player.");
         ExplodeStunDuration = configFile.Bind("Event.Explode", "StunDuration", 3.0f, "Duration in seconds the player will be stunned/ragdolled after explosion.");
@@ -135,7 +135,7 @@ public class Config {
         
         // Event: Slip
         SlipEnabled = configFile.Bind("Event.Slip", "Enabled", true, "Enable the Slip event.");
-        SlipKeywords = configFile.Bind("Event.Slip", "Keywords", "fuck, asshole, bastard, bitch, fag, damn, crap, slip, slide, trip, fall, fell, stumble, tumble, topple, stagger, wobble, skid, slippery, slick, peel, unbalanced, unstable, tilting, tilt", "List of keywords that trigger the slip event, separated by commas.");
+        SlipKeywords = configFile.Bind("Event.Slip", "Keywords", "fuck, asshole, bastard, bitch, fag, damn, crap, slip, slide, trip, fall, fell, stumble, tumble, topple, stagger, wobble, skid, slick, peel, unbalanced, unstable, tilt", "List of keywords that trigger the slip event, separated by commas.");
         SlipStunDuration = configFile.Bind("Event.Slip", "StunDuration", 2.0f, "Duration in seconds the player will be stunned/ragdolled after slipping.");
     }
 }
