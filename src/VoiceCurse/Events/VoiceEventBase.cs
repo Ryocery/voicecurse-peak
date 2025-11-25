@@ -71,5 +71,9 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
         return success;
     }
 
+    public virtual void PlayEffects(Character origin, Vector3 position) {
+        PlayEffects(position);
+    }
+
     public virtual void PlayEffects(Vector3 position) { }
 }
