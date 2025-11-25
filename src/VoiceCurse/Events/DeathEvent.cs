@@ -1,23 +1,29 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Photon.Pun;
 
 namespace VoiceCurse.Events;
 
 public class DeathEvent(Config config) : VoiceEventBase(config) {
-    private readonly HashSet<string> _deathKeywords = [
-        "die", "death", "dead", "suicide", "kill", "deceased", "skeleton", 
-        "skull", "bone", "perish", "demise", "expire", 
-        "fatal", "mortal", "slain", "dying",
-        "corpse", "cadaver", "lifeless", "cease", "extinct", "eliminate",
-        "terminate", "execute", "obliterate", "annihilate", "eradicate",
-        "end", "finish", "doom", "grave", "burial",
-        "coffin", "casket", "tomb", "crypt", "reaper", "grim"
-    ];
+    private readonly HashSet<string> _deathKeywords = ParseKeywords(config.DeathKeywords.Value);
 
-    protected override IEnumerable<string> GetKeywords() => _deathKeywords;
+    private static HashSet<string> ParseKeywords(string configLine) {
+        return configLine
+            .Split([','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(k => k.Trim().ToLowerInvariant())
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .ToHashSet();
+    }
+
+    protected override IEnumerable<string> GetKeywords() {
+        return Config.DeathEnabled.Value ? _deathKeywords : Enumerable.Empty<string>();
+    }
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
+        if (!Config.DeathEnabled.Value) return false;
         if (player.data.dead) return false;
+        
         player.photonView.RPC("RPCA_Die", RpcTarget.All, player.Center);
         return true;
     }

@@ -40,6 +40,18 @@ public class Config {
     public ConfigEntry<bool> TransmuteEggEnabled { get; private set; }
     public ConfigEntry<bool> TransmuteFruitEnabled { get; private set; }
     public ConfigEntry<bool> TransmuteMushroomEnabled { get; private set; }
+    
+    // Event: Death
+    public ConfigEntry<bool> DeathEnabled { get; private set; }
+    public ConfigEntry<string> DeathKeywords { get; private set; }
+
+    // Event: Zombify
+    public ConfigEntry<bool> ZombifyEnabled { get; private set; }
+    public ConfigEntry<string> ZombifyKeywords { get; private set; }
+
+    // Event: Sleep
+    public ConfigEntry<bool> SleepEnabled { get; private set; }
+    public ConfigEntry<string> SleepKeywords { get; private set; }
 
     public Config(ConfigFile configFile) {
         // Global
@@ -77,5 +89,17 @@ public class Config {
         TransmuteEggEnabled = configFile.Bind("Event.Transmute", "EnableEgg", true, "Enable 'egg' -> Egg");
         TransmuteFruitEnabled = configFile.Bind("Event.Transmute", "EnableFruit", true, "Enable 'fruit' -> Random Fruit");
         TransmuteMushroomEnabled = configFile.Bind("Event.Transmute", "EnableMushroom", true, "Enable 'mushroom/fungus' -> Mushroom");
+        
+        // Event: Death
+        DeathEnabled = configFile.Bind("Event.Death", "Enabled", true, "Enable the Death event.");
+        DeathKeywords = configFile.Bind("Event.Death", "Keywords", "die, death, dead, suicide, kill, deceased, skeleton, skull, bone, perish, demise, expire, fatal, mortal, slain, dying, corpse, cadaver, lifeless, cease, extinct, eliminate, terminate, execute, obliterate, annihilate, eradicate, end, finish, doom, grave, burial, coffin, casket, tomb, crypt, reaper, grim", "List of keywords that trigger the death event, separated by commas.");
+
+        // Event: Zombify
+        ZombifyEnabled = configFile.Bind("Event.Zombify", "Enabled", true, "Enable the Zombify event.");
+        ZombifyKeywords = configFile.Bind("Event.Zombify", "Keywords", "zombie, zombify, zombified, walker, ghoul, bitten, bite, brain, rot, decay, infected, infection, plague, pandemic, virus, outbreak, cannibal, flesh, meat, undead, risen, horde, apocalypse, reanimate, reanimated, lurker, creeper, crawler, groaning, groan, moan, moaning, growl, snarl", "List of keywords that trigger the zombify event, separated by commas.");
+
+        // Event: Sleep
+        SleepEnabled = configFile.Bind("Event.Sleep", "Enabled", true, "Enable the Sleep event.");
+        SleepKeywords = configFile.Bind("Event.Sleep", "Keywords", "faint, sleep, exhausted, sleepy, tired, bed, nap, rest, slumber, doze, snooze, pass out, knockout, blackout, coma, narc, drowsy, unconscious, collapse, zonk, conk, yawn, fatigue, fatigued, weary, lethargic, sluggish, drained, wiped, beat, worn, spent, shut-eye, shuteye, siesta, catnap, dreamland, nodding off, drift off, lights out, out cold", "List of keywords that trigger the sleep event, separated by commas.");
     }
 }
