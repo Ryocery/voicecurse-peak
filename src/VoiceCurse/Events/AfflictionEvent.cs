@@ -1,39 +1,53 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace VoiceCurse.Events;
 
-public class AfflictionEvent(Config config) : VoiceEventBase(config) {
-    private static readonly Dictionary<CharacterAfflictions.STATUSTYPE, string[]> KeyWords = new() {
-        { CharacterAfflictions.STATUSTYPE.Injury, ["damage", "hurt", "injury", "injured", "pain", "harm", "wound", "hit", "bleed", "bruise", "cut", "slash", "slashed", "orange", "ache", "sore", "trauma", "gash", "scrape", "laceration", "tear", "torn", "broken", "fracture", "sprain", "puncture", "stab", "maim", "maimed", "cripple", "batter"] },
-        { CharacterAfflictions.STATUSTYPE.Hunger, ["hunger", "hungry", "starving", "starve", "food", "malnourishment", "famished", "eat", "snack", "meal", "yellow", "appetite", "crave", "craving", "ravenous", "peckish", "feast", "feed", "sustenance", "nourishment", "nutrition", "consume"] },
-        { CharacterAfflictions.STATUSTYPE.Cold,   ["freezing", "cold", "blizzard", "shiver", "ice", "frozen", "chill", "frigid", "winter", "blue", "frost", "arctic", "polar", "glacier", "icicle", "hypothermia", "numb", "shivering", "freeze"] },
-        { CharacterAfflictions.STATUSTYPE.Hot,    ["hot", "burning", "fire", "melt", "scorching", "heat", "burn", "pyro", "flame", "summer", "cook", "hell", "red", "sizzle", "sear", "swelter", "boil", "roast", "bake", "baking", "scald", "inferno", "blaze", "blazing", "ignite", "combust", "incinerate"] },
-        { CharacterAfflictions.STATUSTYPE.Poison, ["poison", "sick", "vomit", "toxic", "venom", "contaminate", "purple", "nausea", "nauseous", "intoxicate", "pollute", "taint", "corrupt", "disease", "ill", "ailment", "malady"] },
-        { CharacterAfflictions.STATUSTYPE.Spores, ["spore", "pink"] }
-    };
+public class AfflictionEvent : VoiceEventBase {
+    private readonly Dictionary<string, CharacterAfflictions.STATUSTYPE> _wordToType;
 
-    
-    private readonly Dictionary<string, CharacterAfflictions.STATUSTYPE> _wordToType = 
-        KeyWords.SelectMany(g => g.Value
-            .Select(w => (Word: w, Type: g.Key)))
-            .ToDictionary(x => x.Word, x => x.Type);
+    public AfflictionEvent(Config config) : base(config) {
+        _wordToType = new Dictionary<string, CharacterAfflictions.STATUSTYPE>();
+        LoadKeywordsForType(config.AfflictionKeywordsInjury.Value, CharacterAfflictions.STATUSTYPE.Injury);
+        LoadKeywordsForType(config.AfflictionKeywordsHunger.Value, CharacterAfflictions.STATUSTYPE.Hunger);
+        LoadKeywordsForType(config.AfflictionKeywordsCold.Value, CharacterAfflictions.STATUSTYPE.Cold);
+        LoadKeywordsForType(config.AfflictionKeywordsHot.Value, CharacterAfflictions.STATUSTYPE.Hot);
+        LoadKeywordsForType(config.AfflictionKeywordsPoison.Value, CharacterAfflictions.STATUSTYPE.Poison);
+        LoadKeywordsForType(config.AfflictionKeywordsSpores.Value, CharacterAfflictions.STATUSTYPE.Spores);
+    }
 
-    protected override IEnumerable<string> GetKeywords() => _wordToType.Keys;
+    private void LoadKeywordsForType(string configLine, CharacterAfflictions.STATUSTYPE type) {
+        IEnumerable<string> words = configLine
+            .Split([','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(w => w.Trim().ToLowerInvariant())
+            .Where(w => !string.IsNullOrWhiteSpace(w));
+
+        foreach (string? word in words) {
+            _wordToType[word] = type;
+        }
+    }
+
+    protected override IEnumerable<string> GetKeywords() {
+        return Config.AfflictionEnabled.Value ? _wordToType.Keys : Enumerable.Empty<string>();
+    }
 
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
+        if (!Config.AfflictionEnabled.Value) return false;
         if (player.refs?.afflictions is null) return false;
         if (player.data.dead || player.data.fullyPassedOut) return false;
-        if (!_wordToType.TryGetValue(matchedKeyword, out CharacterAfflictions.STATUSTYPE statusType)) return false;
         
+        if (!_wordToType.TryGetValue(matchedKeyword, out CharacterAfflictions.STATUSTYPE statusType)) return false;
         ExecutionDetail = statusType.ToString();
-    
-        if (statusType is CharacterAfflictions.STATUSTYPE.Hot or CharacterAfflictions.STATUSTYPE.Cold) {
+
+        if (Config.AfflictionTemperatureSwapEnabled.Value && 
+           (statusType is CharacterAfflictions.STATUSTYPE.Hot or CharacterAfflictions.STATUSTYPE.Cold)) {
             HandleTemperatureExchange(player, statusType);
         }
 
-        float amount = Random.Range(Config.MinAfflictionPercent.Value, Config.MaxAfflictionPercent.Value);
+        float amount = UnityEngine.Random.Range(Config.AfflictionMinPercent.Value, Config.AfflictionMaxPercent.Value);
+        
         if (Config.EnableDebugLogs.Value) {
             Debug.Log($"[VoiceCurse] Affliction Specifics: {statusType} ({amount:P0})");
         }
@@ -45,7 +59,8 @@ public class AfflictionEvent(Config config) : VoiceEventBase(config) {
     private void HandleTemperatureExchange(Character player, CharacterAfflictions.STATUSTYPE incomingType) {
         CharacterAfflictions.STATUSTYPE oppositeType = incomingType == CharacterAfflictions.STATUSTYPE.Hot ? CharacterAfflictions.STATUSTYPE.Cold : CharacterAfflictions.STATUSTYPE.Hot;
         float currentOppositeValue = player.refs.afflictions.GetCurrentStatus(oppositeType);
-        if (currentOppositeValue == 0f) return;
+        
+        if (currentOppositeValue <= 0.01f) return;
         
         if (Config.EnableDebugLogs.Value) {
             Debug.Log($"[VoiceCurse] Swapping {oppositeType} ({currentOppositeValue:P0}) to {incomingType}");
