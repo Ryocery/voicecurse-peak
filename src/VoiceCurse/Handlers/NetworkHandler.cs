@@ -57,7 +57,11 @@ public class NetworkHandler : IOnEventCallback {
 
         DisplayNotification(charName, playerColor, spokenWord, matchedKeyword, eventName, detail);
 
-        if (EventHandler.Events.TryGetValue(eventName, out IVoiceEvent evt)) {
+        if (!EventHandler.Events.TryGetValue(eventName, out IVoiceEvent evt)) return;
+        
+        if (character) {
+            evt.PlayEffects(character, position);
+        } else {
             evt.PlayEffects(position);
         }
     }

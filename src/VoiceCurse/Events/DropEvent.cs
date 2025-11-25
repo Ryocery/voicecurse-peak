@@ -31,7 +31,8 @@ public class DropEvent(Config config) : VoiceEventBase(config) {
         Vector3 dropPos = origin.Center + fwd * 0.6f + Vector3.up * 0.5f;
         
         for (byte i = 0; i < 4; i++) {
-            origin.refs.items.DropItemFromSlotRPC(i, dropPos);
+            if (origin.player.GetItemSlot(i).IsEmpty()) continue;
+            origin.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, i, dropPos);
             dropPos += Vector3.up * 0.3f;
         }
     }
