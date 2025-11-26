@@ -37,9 +37,13 @@ You can modify the following settings for each event:
 * **Forces & Durations:** Adjust launch forces, explosion radius, stun durations, and damage percentages.
 * **Specific Toggles:** Enable or disable specific transmutation rules or mechanics.
 
+The configuration applies only to yourself and what you want to happen to you when you say the keywords.
+
 ## Installation
 
 1.  Ensure BepInEx is installed.
 2.  Download the latest release of VoiceCurse.
 3.  Extract the contents into your game's `BepInEx/plugins` folder.
 4.  Run the game once to generate the configuration file.
+
+## Everyone needs to have the mod installed for it to work properly!
