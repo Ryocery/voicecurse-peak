@@ -12,8 +12,8 @@ The keywords themselves can all be configured to your own preference, although t
 | Affliction | "hot", "cold", "ill", "sick"        | Gives you the affliction of the related keyword.                                     |
 | Death      | "die", "end", "bones", "skeleton"   | Kills you instantly.                                                                 |
 | Drop       | "oops", "release", "off", "lose"    | Drops all your items, including the items in your backpack.                          |
-| Explode    | "blow", "explode", "blast", "blast" | Makes you explode instantly, this causes damage to your surroundings too.            |
-| Launch     | "up", "down", "right", "cannon"     | Launches you in a specified direction if provided, otherwise randomly.               |
+| Explode    | "blow", "explode", "blast", "nuke"  | Makes you explode instantly, this causes damage to your surroundings too.            |
+| Launch     | "up", "left", "right", "cannon"     | Launches you in a specified direction if provided, otherwise randomly.               |
 | Sleep      | "rest", "tired", "exhausted", "nap" | Makes you pass out instantly.                                                        |
 | Slip       | "crap", "damn",  "trip", "fall"     | Causes you to trip like stepping on a banana.                                        |
 | Transmute  | "milk", "fruit", "apple", "banana"  | Causes you and your items to tranform into related objects, this kills you instantly |
