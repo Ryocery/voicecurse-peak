@@ -15,7 +15,6 @@ public class ZombifyEvent(Config config) : VoiceEventBase(config) {
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
         if (!Config.ZombifyEnabled.Value) return false;
         if (player.data.dead || player.data.zombified) return false;
-        
         player.photonView.RPC("RPCA_Zombify", RpcTarget.All, player.Center);
         return true;
     }

@@ -32,6 +32,7 @@ public class SacrificeEvent(Config config) : VoiceEventBase(config) {
         ExecutionDetail = $"Reviving {closestDeadPlayer.characterName}";
         closestDeadPlayer.view.RPC("RPCA_ReviveAtPosition", RpcTarget.All, revivePosition, true);
         DeathTracker.RemoveDeath(closestDeadPlayer);
+        
         player.DieInstantly();
         return true;
     }

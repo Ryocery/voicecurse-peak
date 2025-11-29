@@ -20,7 +20,7 @@ public class TransmuteEvent : VoiceEventBase {
             ("Milk",     ["milk", "calcium"], ["Fortified Milk"], () => config.TransmuteMilkEnabled.Value),
             ("Cactus",   ["cactus", "cacti"], ["Cactus"], () => config.TransmuteCactusEnabled.Value),
             ("Coconut",  ["coconut"], ["Coconut"], () => config.TransmuteCoconutEnabled.Value),
-            ("Apple",    ["apple", "berry"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry"], () => config.TransmuteAppleEnabled.Value),
+            ("Apple",    ["apple", "berry", "berries"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry"], () => config.TransmuteAppleEnabled.Value),
             ("Banana",   ["banana"], ["Berrynana Peel Yellow"], () => config.TransmuteBananaEnabled.Value),
             ("Egg",      ["egg"], ["Egg"], () => config.TransmuteEggEnabled.Value),
             ("Fruit",    ["fruit"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry", "Kingberry Purple", "Kingberry Yellow", "Kingberry Green", "Berrynana Brown", "Berrynana Yellow", "Berrynana Pink", "Berrynana Blue"], () => config.TransmuteFruitEnabled.Value),
