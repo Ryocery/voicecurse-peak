@@ -10,14 +10,6 @@ namespace VoiceCurse.Events;
 public class ExplodeEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = ParseKeywords(config.ExplodeKeywords.Value);
     private static GameObject? _cachedExplosionPrefab;
-
-    private static HashSet<string> ParseKeywords(string configLine) {
-        return configLine
-            .Split([','], StringSplitOptions.RemoveEmptyEntries)
-            .Select(k => k.Trim().ToLowerInvariant())
-            .Where(k => !string.IsNullOrWhiteSpace(k))
-            .ToHashSet();
-    }
         
     protected override IEnumerable<string> GetKeywords() {
         return Config.ExplodeEnabled.Value ? _keywords : Enumerable.Empty<string>();

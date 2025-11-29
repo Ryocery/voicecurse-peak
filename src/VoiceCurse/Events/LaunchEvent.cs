@@ -10,14 +10,6 @@ public class LaunchEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = ParseKeywords(config.LaunchKeywords.Value);
     private static GameObject? _cachedLaunchSFX;
 
-    private static HashSet<string> ParseKeywords(string configLine) {
-        return configLine
-            .Split([','], System.StringSplitOptions.RemoveEmptyEntries)
-            .Select(k => k.Trim().ToLowerInvariant())
-            .Where(k => !string.IsNullOrWhiteSpace(k))
-            .ToHashSet();
-    }
-
     protected override IEnumerable<string> GetKeywords() {
         return Config.LaunchEnabled.Value ? _keywords : Enumerable.Empty<string>();
     }

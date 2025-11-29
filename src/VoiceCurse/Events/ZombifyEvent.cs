@@ -8,14 +8,6 @@ namespace VoiceCurse.Events;
 public class ZombifyEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _zombifyKeywords = ParseKeywords(config.ZombifyKeywords.Value);
 
-    private static HashSet<string> ParseKeywords(string configLine) {
-        return configLine
-            .Split([','], StringSplitOptions.RemoveEmptyEntries)
-            .Select(k => k.Trim().ToLowerInvariant())
-            .Where(k => !string.IsNullOrWhiteSpace(k))
-            .ToHashSet();
-    }
-
     protected override IEnumerable<string> GetKeywords() {
         return Config.ZombifyEnabled.Value ? _zombifyKeywords : Enumerable.Empty<string>();
     }

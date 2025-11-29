@@ -9,14 +9,6 @@ namespace VoiceCurse.Events;
 
 public class DropEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = ParseKeywords(config.DropKeywords.Value);
-
-    private static HashSet<string> ParseKeywords(string configLine) {
-        return configLine
-            .Split([','], StringSplitOptions.RemoveEmptyEntries)
-            .Select(k => k.Trim().ToLowerInvariant())
-            .Where(k => !string.IsNullOrWhiteSpace(k))
-            .ToHashSet();
-    }
     
     protected override IEnumerable<string> GetKeywords() {
         return Config.DropEnabled.Value ? _keywords : Enumerable.Empty<string>();

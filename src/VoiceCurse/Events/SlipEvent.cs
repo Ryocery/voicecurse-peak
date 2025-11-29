@@ -9,14 +9,6 @@ public class SlipEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = ParseKeywords(config.SlipKeywords.Value);
     private static AudioClip? _cachedTripSound;
 
-    private static HashSet<string> ParseKeywords(string configLine) {
-        return configLine
-            .Split([','], StringSplitOptions.RemoveEmptyEntries)
-            .Select(k => k.Trim().ToLowerInvariant())
-            .Where(k => !string.IsNullOrWhiteSpace(k))
-            .ToHashSet();
-    }
-
     protected override IEnumerable<string> GetKeywords() {
         return Config.SlipEnabled.Value ? _keywords : Enumerable.Empty<string>();
     }

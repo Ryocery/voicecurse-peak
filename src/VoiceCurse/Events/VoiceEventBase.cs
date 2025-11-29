@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -15,6 +16,14 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
     protected string? ExecutionDetail { get; set; }
     protected abstract IEnumerable<string> GetKeywords();
     protected abstract bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword);
+    
+    protected static HashSet<string> ParseKeywords(string configLine) {
+        return configLine
+            .Split([','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(k => k.Trim().ToLowerInvariant())
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .ToHashSet();
+    }
 
     public bool TryExecute(string spokenWord, string fullSentence) {
         if (Time.time < _lastExecutionTime + Cooldown) return false;
