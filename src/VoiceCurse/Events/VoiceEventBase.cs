@@ -12,8 +12,10 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
     private float _lastExecutionTime = -999f;
     
     private float Cooldown => Config.GlobalCooldown.Value;
-
+    
     protected string? ExecutionDetail { get; set; }
+    protected string? ExecutionPayload { get; set; }
+
     protected abstract IEnumerable<string> GetKeywords();
     protected abstract bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword);
     
@@ -39,11 +41,12 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
         if (!localChar || !localChar.gameObject.activeInHierarchy) return false;
         
         ExecutionDetail = null;
+        ExecutionPayload = null;
         bool success = false;
         
         try {
             success = OnExecute(localChar, spokenWord, fullSentence, matchedKeyword);
-        } catch (System.Exception e) {
+        } catch (Exception e) {
             if (Config.EnableDebugLogs.Value) {
                 Debug.LogWarning($"[VoiceCurse] Failed to execute {GetType().Name}: {e.Message}");
             }
@@ -74,10 +77,14 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
             
             textToSend = fullSentence.Substring(start, end - start);
         }
-        
-        NetworkHandler.SendCurseEvent(textToSend, matchedKeyword, eventName, ExecutionDetail, localChar.Center);
+
+        NetworkHandler.SendCurseEvent(textToSend, matchedKeyword, eventName, ExecutionDetail, ExecutionPayload, localChar.Center);
 
         return true;
+    }
+
+    public virtual void PlayEffects(Character origin, Vector3 position, string detail) {
+        PlayEffects(origin, position);
     }
 
     public virtual void PlayEffects(Character origin, Vector3 position) {

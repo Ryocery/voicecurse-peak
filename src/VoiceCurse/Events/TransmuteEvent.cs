@@ -4,10 +4,16 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using Photon.Pun;
-using VoiceCurse.Handlers;
 using Random = UnityEngine.Random;
 
 namespace VoiceCurse.Events;
+
+[Serializable]
+public class TransmutePayload {
+    public string? ruleName;
+    public bool isDeath;
+    public int spawnCount;
+}
 
 public class TransmuteEvent : VoiceEventBase {
     private readonly List<(string Name, string[] Triggers, string[] Targets, Func<bool> IsEnabled)> _definitions;
@@ -25,7 +31,8 @@ public class TransmuteEvent : VoiceEventBase {
             ("Banana",   ["banana"], ["Berrynana Peel Yellow"], () => config.TransmuteBananaEnabled.Value),
             ("Egg",      ["egg"], ["Egg"], () => config.TransmuteEggEnabled.Value),
             ("Fruit",    ["fruit"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry", "Kingberry Purple", "Kingberry Yellow", "Kingberry Green", "Berrynana Brown", "Berrynana Yellow", "Berrynana Pink", "Berrynana Blue"], () => config.TransmuteFruitEnabled.Value),
-            ("Mushroom", ["fungus", "mushroom", "fungi", "funghi", "shroom"], ["Mushroom Normie"], () => config.TransmuteMushroomEnabled.Value)
+            ("Mushroom", ["fungus", "mushroom", "fungi", "funghi", "shroom"], ["Mushroom Normie"], () => config.TransmuteMushroomEnabled.Value),
+            ("Ball", ["ball"], ["Basketball"], () => config.TransmuteBallEnabled.Value)
         ];
         
         foreach ((string Name, string[] Triggers, string[] Targets, Func<bool> IsEnabled) def in _definitions) {
@@ -67,30 +74,47 @@ public class TransmuteEvent : VoiceEventBase {
         if (targets == null || targets.Length == 0) return false;
         
         bool deathEnabled = Config.TransmuteDeathEnabled.Value;
-        ExecutionDetail = $"{ruleName}|{(deathEnabled ? "1" : "0")}";
+        
+        TransmutePayload payload = new() {
+            ruleName = ruleName,
+            isDeath = deathEnabled,
+            spawnCount = 0
+        };
+
+        if (deathEnabled) {
+            int countToSpawn = ClearInventoryForDeath(player);
+            player.DieInstantly();
+            payload.spawnCount = countToSpawn;
+        }
+        
+        ExecutionDetail = ruleName;
+        ExecutionPayload = JsonUtility.ToJson(payload);
         
         return true;
     }
     
-    public override void PlayEffects(Character origin, Vector3 position) {
+    public override void PlayEffects(Character origin, Vector3 position, string detail) {
         if (!PhotonNetwork.IsMasterClient) return;
         if (!origin) return;
         
-        string detail = NetworkHandler.CurrentEventDetail ?? "";
         if (string.IsNullOrEmpty(detail)) return;
 
-        string[] parts = detail.Split('|');
-        string ruleName = parts[0];
-        bool isDeath = parts.Length > 1 && parts[1] == "1";
-        
-        (string Name, string[] Triggers, string[] Targets, Func<bool> IsEnabled) definition = _definitions.FirstOrDefault(d => d.Name == ruleName);
+        TransmutePayload payload;
+        try {
+            payload = JsonUtility.FromJson<TransmutePayload>(detail);
+        } catch {
+            return;
+        }
+
+        if (payload == null || string.IsNullOrEmpty(payload.ruleName)) return;
+
+        (string Name, string[] Triggers, string[] Targets, Func<bool> IsEnabled) definition = _definitions.FirstOrDefault(d => d.Name == payload.ruleName);
         if (definition.Targets == null || definition.Targets.Length == 0) return;
         
         string[] targets = definition.Targets;
 
-        if (isDeath) {
-            TransmuteInventoryDeath(origin, targets);
-            origin.DieInstantly();
+        if (payload.isDeath) {
+            SpawnTransmutedItems(origin.Center, payload.spawnCount, targets);
         } else {
             TransmuteInventoryAlive(origin, targets);
             float damage = Random.Range(Config.AfflictionMinPercent.Value, Config.AfflictionMaxPercent.Value);
@@ -100,30 +124,30 @@ public class TransmuteEvent : VoiceEventBase {
         }
     }
 
-    private void TransmuteInventoryDeath(Character player, string[] possibleTargets) {
-        int countToSpawn = 1;
+    private static int ClearInventoryForDeath(Character player) {
+        int count = 1;
         Vector3 voidPosition = new(0, -5000, 0);
         
         for (byte i = 0; i < 3; i++) {
             ItemSlot slot = player.player.GetItemSlot(i);
             if (slot == null || slot.IsEmpty()) continue;
             
-            countToSpawn++;
+            count++;
             player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, i, voidPosition);
         }
 
         ItemSlot backpackSlot = player.player.GetItemSlot(3);
         if (backpackSlot != null && !backpackSlot.IsEmpty()) {
             if (backpackSlot.data.TryGetDataEntry(DataEntryKey.BackpackData, out BackpackData backpackData)) {
-                countToSpawn += backpackData.FilledSlotCount();
+                count += backpackData.FilledSlotCount();
             }
             
-            countToSpawn++;
+            count++;
             player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, (byte)3, voidPosition);
         }
 
-        SpawnTransmutedItems(player.Center, countToSpawn, possibleTargets);
         if (player.refs.afflictions) player.refs.afflictions.UpdateWeight();
+        return count;
     }
 
     private void TransmuteInventoryAlive(Character player, string[] possibleTargets) {

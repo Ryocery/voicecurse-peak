@@ -12,16 +12,16 @@ public class NetworkHandler : IOnEventCallback {
     private const byte VoiceCurseEventCode = 187; 
     private static MonoBehaviour? _connectionLog;
     private static MethodInfo? _addMessageMethod;
-    public static string? CurrentEventDetail { get; private set; }
 
-    public static void SendCurseEvent(string spokenWord, string matchedKeyword, string eventName, string? detail, Vector3 position) {
+    public static void SendCurseEvent(string spokenWord, string matchedKeyword, string eventName, string? detail, string? payload, Vector3 position) {
         object[] content = [
             PhotonNetwork.LocalPlayer.ActorNumber,
             spokenWord,
             matchedKeyword,
             eventName,
             detail ?? string.Empty,
-            position
+            position,
+            payload ?? string.Empty
         ];
 
         RaiseEventOptions raiseEventOptions = new() { Receivers = ReceiverGroup.All };
@@ -38,8 +38,10 @@ public class NetworkHandler : IOnEventCallback {
         string spokenWord = (string)data[1];
         string matchedKeyword = (string)data[2];
         string eventName = (string)data[3];
-        string detail = (string)data[4];
+        string displayDetail = (string)data[4];
         Vector3 position = (Vector3)data[5];
+        
+        string payload = data.Length > 6 ? (string)data[6] : string.Empty;
 
         string charName = "Unknown";
         Color playerColor = Color.white;
@@ -56,24 +58,15 @@ public class NetworkHandler : IOnEventCallback {
             }
         }
         
-        string displayDetail = detail;
-        if (!string.IsNullOrEmpty(detail) && detail.Contains('|')) {
-            displayDetail = detail.Split('|')[0];
-        }
-
         DisplayNotification(charName, playerColor, spokenWord, matchedKeyword, eventName, displayDetail);
 
         if (!EventHandler.Events.TryGetValue(eventName, out IVoiceEvent evt)) return;
-
-        CurrentEventDetail = detail;
-        try {
-            if (character) {
-                evt.PlayEffects(character, position);
-            } else {
-                evt.PlayEffects(position);
-            }
-        } finally {
-            CurrentEventDetail = null;
+        
+        if (character) {
+            string dataToPass = !string.IsNullOrEmpty(payload) ? payload : displayDetail;
+            evt.PlayEffects(character, position, dataToPass);
+        } else {
+            evt.PlayEffects(position);
         }
     }
 

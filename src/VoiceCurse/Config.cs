@@ -40,6 +40,7 @@ public class Config {
     public ConfigEntry<bool> TransmuteEggEnabled { get; private set; }
     public ConfigEntry<bool> TransmuteFruitEnabled { get; private set; }
     public ConfigEntry<bool> TransmuteMushroomEnabled { get; private set; }
+    public ConfigEntry<bool> TransmuteBallEnabled { get; private set; }
     
     // Event: Death
     public ConfigEntry<bool> DeathEnabled { get; private set; }
@@ -113,6 +114,7 @@ public class Config {
         TransmuteEggEnabled = config.Bind("Event.Transmute", "EnableEgg", true, "Enable 'egg' -> Egg");
         TransmuteFruitEnabled = config.Bind("Event.Transmute", "EnableFruit", true, "Enable 'fruit' -> Random Fruit");
         TransmuteMushroomEnabled = config.Bind("Event.Transmute", "EnableMushroom", true, "Enable 'mushroom/fungus' -> Mushroom");
+        TransmuteBallEnabled = config.Bind("Event.Transmute", "EnableBall", false, "Enable 'ball' -> Basketball");
         
         // Event: Death
         DeathEnabled = config.Bind("Event.Death", "Enabled", true, "Enable the Death event.");
