@@ -76,6 +76,11 @@ public class Config {
     public ConfigEntry<bool> SacrificeEnabled { get; private set; }
     public ConfigEntry<string> SacrificeKeywords { get; private set; }
     public ConfigEntry<float> SacrificeCooldown { get; private set; }
+    
+    // Event: Blind
+    public ConfigEntry<bool> BlindEnabled { get; private set; }
+    public ConfigEntry<string> BlindKeywords { get; private set; }
+    public ConfigEntry<float> BlindDuration { get; private set; }
 
     public Config(ConfigFile config) {
         // Global
@@ -150,5 +155,10 @@ public class Config {
         SacrificeEnabled = config.Bind("Event.Sacrifice", "Enabled", true, "Enable the Sacrifice event.");
         SacrificeKeywords = config.Bind("Event.Sacrifice", "Keywords", "sacrifice, trade, revive, resurrect, exchange, soul, offer", "List of keywords that trigger the sacrifice event.");
         SacrificeCooldown = config.Bind("Event.Sacrifice", "Cooldown", 300f, "Cooldown in seconds for the sacrifice event.");
+        
+        // Event: Blind
+        BlindEnabled = config.Bind("Event.Blind", "Enabled", true, "Enable the Blind event.");
+        BlindKeywords = config.Bind("Event.Blind", "Keywords", "blind, flash, eyes, vision, cant see, darkness, my eyes", "List of keywords that trigger the blind event.");
+        BlindDuration = config.Bind("Event.Blind", "Duration", 15.0f, "Duration in seconds the player will be blinded.");
     }
 }

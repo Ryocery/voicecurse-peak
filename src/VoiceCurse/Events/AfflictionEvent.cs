@@ -41,8 +41,7 @@ public class AfflictionEvent : VoiceEventBase {
         if (!_wordToType.TryGetValue(matchedKeyword, out CharacterAfflictions.STATUSTYPE statusType)) return false;
         ExecutionDetail = statusType.ToString();
 
-        if (Config.AfflictionTemperatureSwapEnabled.Value && 
-           (statusType is CharacterAfflictions.STATUSTYPE.Hot or CharacterAfflictions.STATUSTYPE.Cold)) {
+        if (Config.AfflictionTemperatureSwapEnabled.Value && statusType is CharacterAfflictions.STATUSTYPE.Hot or CharacterAfflictions.STATUSTYPE.Cold) { 
             HandleTemperatureExchange(player, statusType);
         }
 
