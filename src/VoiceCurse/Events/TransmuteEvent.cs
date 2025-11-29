@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Photon.Pun;
 using UnityEngine;
+using Photon.Pun;
 using Random = UnityEngine.Random;
 
-namespace VoiceCurse.Events.Punishment;
+namespace VoiceCurse.Events;
 
 public class TransmuteEvent : VoiceEventBase {
     private readonly List<(string Name, string[] Triggers, string[] Targets, Func<bool> IsEnabled)> _definitions;

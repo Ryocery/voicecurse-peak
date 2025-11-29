@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using VoiceCurse.Events.Punishment;
+using VoiceCurse.Events;
 using VoiceCurse.Interfaces;
 
 namespace VoiceCurse.Handlers;

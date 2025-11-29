@@ -4,7 +4,7 @@ using UnityEngine;
 using VoiceCurse.Handlers;
 using VoiceCurse.Interfaces;
 
-namespace VoiceCurse.Events.Punishment;
+namespace VoiceCurse.Events;
 
 public abstract class VoiceEventBase(Config config) : IVoiceEvent {
     protected readonly Config Config = config;
@@ -20,8 +20,8 @@ public abstract class VoiceEventBase(Config config) : IVoiceEvent {
         if (Time.time < _lastExecutionTime + Cooldown) return false;
         
         string? matchedKeyword = GetKeywords().FirstOrDefault(keyword => 
-            spokenWord.Contains((string)keyword) || 
-            (fullSentence.Contains((string)keyword) && keyword.EndsWith(" " + spokenWord, System.StringComparison.OrdinalIgnoreCase))
+            spokenWord.Contains(keyword) || 
+            (fullSentence.Contains(keyword) && keyword.EndsWith(" " + spokenWord, System.StringComparison.OrdinalIgnoreCase))
         );
         
         if (matchedKeyword == null) return false;

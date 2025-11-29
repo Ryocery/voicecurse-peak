@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace VoiceCurse.Events.Punishment;
+namespace VoiceCurse.Events;
 
 public class SlipEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = ParseKeywords(config.SlipKeywords.Value);

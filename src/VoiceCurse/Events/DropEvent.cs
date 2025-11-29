@@ -5,7 +5,7 @@ using Photon.Pun;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace VoiceCurse.Events.Punishment;
+namespace VoiceCurse.Events;
 
 public class DropEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = ParseKeywords(config.DropKeywords.Value);
