@@ -71,7 +71,7 @@ public class TransmuteEvent : VoiceEventBase {
         
         if (deathEnabled) {
             TransmuteInventoryDeath(player, targets);
-            player.photonView.RPC("RPCA_Die", RpcTarget.All, player.Center);
+            player.DieInstantly();
         } else {
             TransmuteInventoryAlive(player, targets);
 

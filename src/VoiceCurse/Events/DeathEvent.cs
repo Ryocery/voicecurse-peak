@@ -15,8 +15,7 @@ public class DeathEvent(Config config) : VoiceEventBase(config) {
     protected override bool OnExecute(Character player, string spokenWord, string fullSentence, string matchedKeyword) {
         if (!Config.DeathEnabled.Value) return false;
         if (player.data.dead) return false;
-        
-        player.photonView.RPC("RPCA_Die", RpcTarget.All, player.Center);
+        player.DieInstantly();
         return true;
     }
 }
