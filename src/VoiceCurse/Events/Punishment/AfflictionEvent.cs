@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace VoiceCurse.Events;
+namespace VoiceCurse.Events.Punishment;
 
 public class AfflictionEvent : VoiceEventBase {
     private readonly Dictionary<string, CharacterAfflictions.STATUSTYPE> _wordToType;

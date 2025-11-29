@@ -4,7 +4,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-namespace VoiceCurse.Events;
+namespace VoiceCurse.Events.Punishment;
 
 public class LaunchEvent(Config config) : VoiceEventBase(config) {
     private readonly HashSet<string> _keywords = ParseKeywords(config.LaunchKeywords.Value);
