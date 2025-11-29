@@ -30,8 +30,8 @@ public class Config {
 
     // Event: Transmute
     public ConfigEntry<bool> TransmuteEnabled { get; private set; }
+    public ConfigEntry<bool> TransmuteDeathEnabled { get; private set; }
     
-    // Individual Transmute Toggles
     public ConfigEntry<bool> TransmuteMilkEnabled { get; private set; }
     public ConfigEntry<bool> TransmuteCactusEnabled { get; private set; }
     public ConfigEntry<bool> TransmuteCoconutEnabled { get; private set; }
@@ -98,6 +98,7 @@ public class Config {
 
         // Event: Transmute
         TransmuteEnabled = config.Bind("Event.Transmute", "Enabled", true, "Enable the Transmute event.");
+        TransmuteDeathEnabled = config.Bind("Event.Transmute", "EnableDeath", true, "Enable instant death when transmute is triggered (by using your flesh as something to transmute). If disabled, you will just take damage instead (your flesh partially transmutes).");
         
         TransmuteMilkEnabled = config.Bind("Event.Transmute", "EnableMilk", true, "Enable 'milk/calcium' -> Fortified Milk");
         TransmuteCactusEnabled = config.Bind("Event.Transmute", "EnableCactus", true, "Enable 'cactus' -> Cactus");
