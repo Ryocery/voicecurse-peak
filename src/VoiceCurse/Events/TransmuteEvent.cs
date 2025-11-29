@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using Photon.Pun;
+using VoiceCurse.Handlers;
 using Random = UnityEngine.Random;
 
 namespace VoiceCurse.Events;
@@ -65,19 +66,38 @@ public class TransmuteEvent : VoiceEventBase {
 
         if (targets == null || targets.Length == 0) return false;
         
-        ExecutionDetail = ruleName;
         bool deathEnabled = Config.TransmuteDeathEnabled.Value;
+        ExecutionDetail = $"{ruleName}|{(deathEnabled ? "1" : "0")}";
         
-        if (deathEnabled) {
-            TransmuteInventoryDeath(player, targets);
-            player.DieInstantly();
-        } else {
-            TransmuteInventoryAlive(player, targets);
-            float damage = Random.Range(Config.AfflictionMinPercent.Value, Config.AfflictionMaxPercent.Value);
-            player.refs.afflictions.AddStatus(CharacterAfflictions.STATUSTYPE.Injury, damage);
-        }
-
         return true;
+    }
+    
+    public override void PlayEffects(Character origin, Vector3 position) {
+        if (!PhotonNetwork.IsMasterClient) return;
+        if (!origin) return;
+        
+        string detail = NetworkHandler.CurrentEventDetail ?? "";
+        if (string.IsNullOrEmpty(detail)) return;
+
+        string[] parts = detail.Split('|');
+        string ruleName = parts[0];
+        bool isDeath = parts.Length > 1 && parts[1] == "1";
+        
+        (string Name, string[] Triggers, string[] Targets, Func<bool> IsEnabled) definition = _definitions.FirstOrDefault(d => d.Name == ruleName);
+        if (definition.Targets == null || definition.Targets.Length == 0) return;
+        
+        string[] targets = definition.Targets;
+
+        if (isDeath) {
+            TransmuteInventoryDeath(origin, targets);
+            origin.DieInstantly();
+        } else {
+            TransmuteInventoryAlive(origin, targets);
+            float damage = Random.Range(Config.AfflictionMinPercent.Value, Config.AfflictionMaxPercent.Value);
+            if (origin.refs.afflictions) {
+                origin.refs.afflictions.AddStatus(CharacterAfflictions.STATUSTYPE.Injury, damage);
+            }
+        }
     }
 
     private void TransmuteInventoryDeath(Character player, string[] possibleTargets) {
@@ -103,7 +123,7 @@ public class TransmuteEvent : VoiceEventBase {
         }
 
         SpawnTransmutedItems(player.Center, countToSpawn, possibleTargets);
-        player.refs.afflictions.UpdateWeight();
+        if (player.refs.afflictions) player.refs.afflictions.UpdateWeight();
     }
 
     private void TransmuteInventoryAlive(Character player, string[] possibleTargets) {
@@ -130,7 +150,7 @@ public class TransmuteEvent : VoiceEventBase {
             SpawnTransmutedItems(spawnOrigin, countToSpawn, possibleTargets);
         }
         
-        player.refs.afflictions.UpdateWeight();
+        if (player.refs.afflictions) player.refs.afflictions.UpdateWeight();
     }
     
     private void SpawnTransmutedItems(Vector3 origin, int count, string[] targets) {

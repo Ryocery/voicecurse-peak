@@ -12,6 +12,7 @@ public class NetworkHandler : IOnEventCallback {
     private const byte VoiceCurseEventCode = 187; 
     private static MonoBehaviour? _connectionLog;
     private static MethodInfo? _addMessageMethod;
+    public static string? CurrentEventDetail { get; private set; }
 
     public static void SendCurseEvent(string spokenWord, string matchedKeyword, string eventName, string? detail, Vector3 position) {
         object[] content = [
@@ -54,15 +55,25 @@ public class NetworkHandler : IOnEventCallback {
                 playerColor = character.refs.customization.PlayerColor;
             }
         }
+        
+        string displayDetail = detail;
+        if (!string.IsNullOrEmpty(detail) && detail.Contains('|')) {
+            displayDetail = detail.Split('|')[0];
+        }
 
-        DisplayNotification(charName, playerColor, spokenWord, matchedKeyword, eventName, detail);
+        DisplayNotification(charName, playerColor, spokenWord, matchedKeyword, eventName, displayDetail);
 
         if (!EventHandler.Events.TryGetValue(eventName, out IVoiceEvent evt)) return;
-        
-        if (character) {
-            evt.PlayEffects(character, position);
-        } else {
-            evt.PlayEffects(position);
+
+        CurrentEventDetail = detail;
+        try {
+            if (character) {
+                evt.PlayEffects(character, position);
+            } else {
+                evt.PlayEffects(position);
+            }
+        } finally {
+            CurrentEventDetail = null;
         }
     }
 
