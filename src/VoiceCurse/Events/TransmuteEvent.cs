@@ -65,13 +65,25 @@ public class TransmuteEvent : VoiceEventBase {
 
         if (targets == null || targets.Length == 0) return false;
         
-        ExecutionDetail = ruleName; 
-        TransmuteInventory(player, targets);
-        player.photonView.RPC("RPCA_Die", RpcTarget.All, player.Center);
+        ExecutionDetail = ruleName;
+
+        bool deathEnabled = Config.TransmuteDeathEnabled.Value;
+        
+        if (deathEnabled) {
+            TransmuteInventoryDeath(player, targets);
+            player.photonView.RPC("RPCA_Die", RpcTarget.All, player.Center);
+        } else {
+            TransmuteInventoryAlive(player, targets);
+
+            if (!player.refs.afflictions) return true;
+            float damage = Random.Range(Config.AfflictionMinPercent.Value, Config.AfflictionMaxPercent.Value);
+            player.refs.afflictions.AddStatus(CharacterAfflictions.STATUSTYPE.Injury, damage);
+        }
+
         return true;
     }
 
-    private void TransmuteInventory(Character player, string[] possibleTargets) {
+    private void TransmuteInventoryDeath(Character player, string[] possibleTargets) {
         int countToSpawn = 1;
         Vector3 voidPosition = new(0, -5000, 0);
         
@@ -93,26 +105,67 @@ public class TransmuteEvent : VoiceEventBase {
             player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, (byte)3, voidPosition);
         }
 
+        SpawnTransmutedItems(player.Center, countToSpawn, possibleTargets);
+        player.refs.afflictions.UpdateWeight();
+    }
+
+    private void TransmuteInventoryAlive(Character player, string[] possibleTargets) {
+        Vector3 voidPosition = new(0, -5000, 0);
         Vector3 spawnOrigin = player.Center;
 
-        for (int i = 0; i < countToSpawn; i++) {
-            string selectedTargetName = possibleTargets[Random.Range(0, possibleTargets.Length)];
-            Item? targetItem = GetOrFindItem(selectedTargetName);
-            if (!targetItem) continue;
+        for (byte i = 0; i < 3; i++) {
+            ItemSlot slot = player.player.GetItemSlot(i);
+            if (slot == null || slot.IsEmpty()) continue;
+            
+            player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, i, voidPosition);
+            SpawnAndPickupItem(player, possibleTargets, spawnOrigin);
+        }
 
-            Vector3 pos = spawnOrigin + Random.insideUnitSphere * 0.5f;
-            pos.y = spawnOrigin.y + 0.5f; 
+        ItemSlot backpackSlot = player.player.GetItemSlot(3);
+        if (backpackSlot != null && !backpackSlot.IsEmpty()) {
+            int countToSpawn = 1;
             
-            string cleanName = NameCleaner.Replace(targetItem.name, "").Trim();
-            string prefabPath = "0_Items/" + cleanName;
-            
-            GameObject obj = PhotonNetwork.Instantiate(prefabPath, pos, Quaternion.identity);
-            if (obj && obj.TryGetComponent(out PhotonView pv)) {
-                pv.RPC("SetKinematicRPC", RpcTarget.All, false, pos, Quaternion.identity);
+            if (backpackSlot.data.TryGetDataEntry(DataEntryKey.BackpackData, out BackpackData backpackData)) {
+                countToSpawn += backpackData.FilledSlotCount();
             }
+            
+            player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, (byte)3, voidPosition);
+            SpawnTransmutedItems(spawnOrigin, countToSpawn, possibleTargets);
         }
         
         player.refs.afflictions.UpdateWeight();
+    }
+    
+    private void SpawnTransmutedItems(Vector3 origin, int count, string[] targets) {
+        for (int i = 0; i < count; i++) {
+            SpawnItem(origin, targets, false, null);
+        }
+    }
+
+    private void SpawnAndPickupItem(Character player, string[] targets, Vector3 origin) {
+        SpawnItem(origin, targets, true, player);
+    }
+
+    private void SpawnItem(Vector3 origin, string[] targets, bool autoPickup, Character? picker) {
+        string selectedTargetName = targets[Random.Range(0, targets.Length)];
+        Item? targetItem = GetOrFindItem(selectedTargetName);
+        if (!targetItem) return;
+
+        Vector3 pos = origin + Random.insideUnitSphere * 0.5f;
+        pos.y = origin.y + 0.5f; 
+        
+        string cleanName = NameCleaner.Replace(targetItem.name, "").Trim();
+        string prefabPath = "0_Items/" + cleanName;
+        
+        GameObject obj = PhotonNetwork.Instantiate(prefabPath, pos, Quaternion.identity);
+        if (!obj || !obj.TryGetComponent(out PhotonView pv)) return;
+        pv.RPC("SetKinematicRPC", RpcTarget.All, false, pos, Quaternion.identity);
+
+        if (!autoPickup || !picker || !obj.TryGetComponent(out Item item)) return;
+        if (picker.refs != null && picker.refs.items != null) {
+            picker.refs.items.lastEquippedSlotTime = 0f;
+        }
+        item.Interact(picker);
     }
     
     private Item? GetOrFindItem(string searchName) {
