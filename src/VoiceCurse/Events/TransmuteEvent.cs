@@ -32,7 +32,7 @@ public class TransmuteEvent : VoiceEventBase {
             ("Egg",      ["egg"], ["Egg"], () => config.TransmuteEggEnabled.Value),
             ("Fruit",    ["fruit"], ["Red Crispberry", "Yellow Crispberry", "Green Crispberry", "Kingberry Purple", "Kingberry Yellow", "Kingberry Green", "Berrynana Brown", "Berrynana Yellow", "Berrynana Pink", "Berrynana Blue"], () => config.TransmuteFruitEnabled.Value),
             ("Mushroom", ["fungus", "mushroom", "fungi", "funghi", "shroom"], ["Mushroom Normie"], () => config.TransmuteMushroomEnabled.Value),
-            ("Ball", ["ball"], ["Basketball"], () => config.TransmuteBallEnabled.Value)
+            ("Ball",     ["ball"], ["Basketball"], () => config.TransmuteBallEnabled.Value)
         ];
         
         foreach ((string Name, string[] Triggers, string[] Targets, Func<bool> IsEnabled) def in _definitions) {
