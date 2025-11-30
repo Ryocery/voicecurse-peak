@@ -94,7 +94,7 @@ public class TransmuteEvent : VoiceEventBase {
         
         return true;
     }
-    
+
     public override void PlayEffects(Character origin, Vector3 position, string detail) {
         if (!PhotonNetwork.IsMasterClient) return;
         if (!origin) return;
@@ -156,13 +156,15 @@ public class TransmuteEvent : VoiceEventBase {
     private void TransmuteInventoryAlive(Character player, string[] possibleTargets) {
         Vector3 voidPosition = new(0, -5000, 0);
         Vector3 spawnOrigin = player.Center;
+        
+        player.refs.items.photonView.RPC("EquipSlotRpc", RpcTarget.All, -1, -1);
 
         for (byte i = 0; i < 3; i++) {
             ItemSlot slot = player.player.GetItemSlot(i);
             if (slot == null || slot.IsEmpty()) continue;
             
             player.refs.items.photonView.RPC("DropItemFromSlotRPC", RpcTarget.All, i, voidPosition);
-            SpawnAndPickupItem(player, possibleTargets, spawnOrigin);
+            SpawnTransmutedItems(spawnOrigin, 1, possibleTargets);
         }
 
         ItemSlot backpackSlot = player.player.GetItemSlot(3);
@@ -179,15 +181,11 @@ public class TransmuteEvent : VoiceEventBase {
         
         if (player.refs.afflictions) player.refs.afflictions.UpdateWeight();
     }
-    
+
     private void SpawnTransmutedItems(Vector3 origin, int count, string[] targets) {
         for (int i = 0; i < count; i++) {
             SpawnItem(origin, targets, false, null);
         }
-    }
-
-    private void SpawnAndPickupItem(Character player, string[] targets, Vector3 origin) {
-        SpawnItem(origin, targets, true, player);
     }
 
     private void SpawnItem(Vector3 origin, string[] targets, bool autoPickup, Character? picker) {
@@ -212,7 +210,7 @@ public class TransmuteEvent : VoiceEventBase {
         
         item.Interact(picker);
     }
-    
+
     private Item? GetOrFindItem(string searchName) {
         if (_itemCache.TryGetValue(searchName, out Item? cachedItem)) {
             if (cachedItem) return cachedItem;
