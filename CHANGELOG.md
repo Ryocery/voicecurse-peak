@@ -9,7 +9,8 @@
 - **Blind Event**: Temporarily blinds the player (similar to Alpine hazard)
 - **BananaBomb Slip**: New addition for the Slip event
     - Low initial chance (configurable) to launch bananas when triggered
-- **Transmute Configuration**: Option to disable instant death and instead transmute all inventory items while alive
+- **Transmute Configuration**: Option to disable instant death and instead transmute all inventory items while alive.
+  - This will still cause the transmuted items to drop. 
 - **Basketball Transmutation**: New transmutation option with configuration
 
 ### Changed
